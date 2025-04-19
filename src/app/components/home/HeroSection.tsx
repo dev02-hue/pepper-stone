@@ -62,7 +62,7 @@ const HeroSection: React.FC = () => {
   };
 
   return (
-    <section className={`${inter.className} flex flex-col md:flex-row justify-between items-center py-12 px-6 bg-white relative`}>
+    <section className={`${inter.className} overflow-x-hidden flex flex-col md:flex-row justify-between items-center py-12 px-6 bg-white relative`}>
       <div className="md:w-1/2 text-center md:text-left animate__animated animate__faster md:p-10">
         <h1 className={`text-4xl font-bold text-black animate__animated animate__faster ${animation}`}>
           {slides[currentSlide].title}
@@ -98,17 +98,17 @@ const HeroSection: React.FC = () => {
       <div className="absolute bottom-6 md:bottom-0 flex justify-evenly w-full px-6">
   <button
     onClick={prevSlide}
-    className="p-2 bg-[#FCE9E7] border-1 border-[#FD4A36] rounded-full shadow-md transition-all cursor-pointer"
+    className="p-1 bg-[#FCE9E7] border-1 border-[#FD4A36] rounded-full shadow-md transition-all cursor-pointer"
     aria-label="Previous slide"
   >
-    <FaArrowLeftLong className="text-4xl text-[#FD4A36] hover:text-orange-700" />
+    <FaArrowLeftLong className="text-2xl text-[#FD4A36] hover:text-orange-700" />
   </button>
   <button
     onClick={nextSlide}
-    className="p-2 bg-[#FD4A36] rounded-full shadow-md transition-all cursor-pointer"
+    className="p-1 bg-[#FD4A36] rounded-full shadow-md transition-all cursor-pointer"
     aria-label="Next slide"
   >
-    <FaArrowRightLong className="text-4xl text-white hover:text-gray-300" />
+    <FaArrowRightLong className="text-2xl text-white hover:text-gray-300" />
   </button>
 </div>
     </section>
