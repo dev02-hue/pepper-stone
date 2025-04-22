@@ -3,7 +3,7 @@ import ExperienceCards from "./components/home/ExperienceCards";
 import HeroSection from "./components/home/HeroSection";
 import OurExperiences from "./components/home/OurExperiences";
 import StatisticsSection from "./components/home/StatisticsSection";
-
+import RegisterSection from "./components/home/RegisterSection";
  
  
 export default function Home() {
@@ -14,6 +14,7 @@ export default function Home() {
       <StatisticsSection />
       <OurExperiences />
       <ExperienceCards />
+      <RegisterSection />
       </>
   );
 }
