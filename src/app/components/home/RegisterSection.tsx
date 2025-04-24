@@ -32,9 +32,7 @@ export default function GetProfit() {
         <div className="grid grid-cols-2 sm:grid-cols-4 mt-20 text-center ">
           <div className="flex flex-col items-center">
             <FaPaperPlane className="w-6 h-6 text-black" />
-            <p className="mt-2 text-sm font-bold text-gray-900">
-              Make Plan
-            </p>
+            <p className="mt-2 text-sm font-bold text-gray-900">Make Plan</p>
           </div>
           <div className="flex flex-col items-center">
             <FaIdCard className="w-6 h-6 text-black" />
@@ -44,15 +42,11 @@ export default function GetProfit() {
           </div>
           <div className="flex flex-col items-center">
             <FaImage className="w-6 h-6 text-black" />
-            <p className="mt-2 text-sm font-bold text-gray-900">
-              Choose Plan
-            </p>
+            <p className="mt-2 text-sm font-bold text-gray-900">Choose Plan</p>
           </div>
           <div className="flex flex-col items-center">
             <FaSync className="w-6 h-6 text-black" />
-            <p className="mt-2 text-sm font-bold text-gray-900">
-              Get Profit
-            </p>
+            <p className="mt-2 text-sm font-bold text-gray-900">Get Profit</p>
           </div>
         </div>
       </div>
