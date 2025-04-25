@@ -14,6 +14,14 @@ const LiveChart = () => {
         ["BTCUSD", "BITSTAMP:BTCUSD|1D"],
         ["ETHUSD", "BITSTAMP:ETHUSD|1D"],
         ["SOLUSD", "BINANCE:SOLUSDT|1D"],
+        ["BNBUSD", "BINANCE:BNBUSDT|1D"],
+        ["XRPUSD", "BITSTAMP:XRPUSD|1D"],
+        ["ADAUSD", "BINANCE:ADAUSDT|1D"],
+        ["DOGEUSD", "BINANCE:DOGEUSDT|1D"],
+        ["AVAXUSD", "BINANCE:AVAXUSDT|1D"],
+        ["DOTUSD", "BINANCE:DOTUSDT|1D"],
+        ["LINKUSD", "BINANCE:LINKUSDT|1D"],
+        ["USDTUSD", "BINANCE:USDTUSD|1D"],  
       ],
       chartOnly: false,
       width: "100%",
@@ -36,8 +44,8 @@ const LiveChart = () => {
   }, []);
 
   return (
-    <div className="my-10 w-full rounded-xl shadow-2xl border border-[#FD4A36] bg-gradient-to-br from-purple-900 to-orange-400 p-4 animate__animated animate__fadeInUp">
-       <div ref={chartContainerRef} className="tradingview-widget-container" />
+    <div className="my-10 w-full rounded-xl shadow-2xl animate__animated animate__fadeInUp">
+      <div ref={chartContainerRef} className="tradingview-widget-container" />
     </div>
   );
 };
