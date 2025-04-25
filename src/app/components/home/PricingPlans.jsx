@@ -1,12 +1,12 @@
 export default function PricingPlans() {
   return (
-    <section className="py-20 px-5 bg-white">
+    <section className="py-20 px-4 sm:px-6 lg:px-10 bg-white">
       {/* Title Section */}
-      <div className="mb-16 pl-20">
-        <h3 className="text-[#FF6347] font-bold text-[24px] border-l-4 border-[#FF6347] pl-3 inline-block">
+      <div className="mb-16 sm:pl-10 lg:pl-20">
+        <h3 className="text-[#FF6347] font-bold text-base sm:text-lg md:text-xl lg:text-2xl border-l-4 border-[#FF6347] pl-3 inline-block">
           Bitci Stack Asset BSA Investment Plans
         </h3>
-        <h1 className="mt-4 text-3xl sm:text-4xl font-extrabold text-gray-900 leading-tight">
+        <h1 className="mt-4 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold text-gray-900 leading-snug sm:leading-tight">
           Take a look at our best investment plans where you will get the
           <br className="hidden sm:block" />
           best profits.
@@ -15,60 +15,55 @@ export default function PricingPlans() {
       </div>
 
       {/* Cards Section */}
-      <div className="flex flex-col md:flex-row justify-center items-center gap-8">
-        {/* Bronze Plan */}
-        <div className="bg-gradient-to-br from-pink-300 to-yellow-300 text-white rounded-2xl p-6 w-80 text-center shadow-xl hover:scale-110 transition duration-300">
-          <h2 className="text-[32px] font-extrabold">Bronze Plan</h2>
-          <p className="text-[62px] font-extrabold">3.5 %</p>
-          <p className="text-[16px] mb-3 font-medium">
-            For 24 Hours / 1 Returns
-          </p>
-          <div className="bg-green-600 text-white text-xs font-bold py-1 mt-5 mb-8 px-2 rounded inline-block">
-            Capital Will Return Back
+      <div className="flex flex-col lg:flex-row justify-center items-center gap-8">
+        {/* Pricing Cards */}
+        {[
+          {
+            title: "Bronze Plan",
+            percent: "3.5 %",
+            duration: "For 24 Hours / 1 Returns",
+            range: "Min. $50 Max: $999",
+            colors: "from-pink-300 to-yellow-300",
+          },
+          {
+            title: "Silver Plan",
+            percent: "5 %",
+            duration: "For 24 Hours / 1 Returns",
+            range: "Min. $1000 Max: $4999",
+            colors: "from-indigo-400 to-green-300",
+          },
+          {
+            title: "Gold Plan",
+            percent: "10 %",
+            duration: "For 48 Hours / 1 Returns",
+            range: "Min. $5000 Max: $100000",
+            colors: "from-yellow-400 to-pink-500",
+          },
+        ].map((plan, idx) => (
+          <div
+            key={idx}
+            className={`bg-gradient-to-br ${plan.colors} text-white rounded-2xl p-6 w-full max-w-[320px] text-center shadow-xl hover:scale-105 transition duration-300`}
+          >
+            <h2 className="text-2xl sm:text-3xl font-extrabold">
+              {plan.title}
+            </h2>
+            <p className="text-4xl sm:text-[52px] font-extrabold mt-2">
+              {plan.percent}
+            </p>
+            <p className="text-sm sm:text-base font-medium mb-3">
+              {plan.duration}
+            </p>
+            <div className="bg-green-600 text-white text-xs font-bold py-1 mt-5 mb-8 px-2 rounded inline-block">
+              Capital Will Return Back
+            </div>
+            <p className="text-sm mb-3 font-medium">24/7 Support</p>
+            <p className="text-sm mb-3 font-medium">10% Referral Commission</p>
+            <p className="text-sm mb-4">{plan.range}</p>
+            <button className="bg-white text-black px-6 sm:px-8 py-2 mt-5 rounded-full font-semibold shadow hover:scale-105 transition">
+              Invest Now
+            </button>
           </div>
-          <p className="text-sm mb-5 font-medium">24/7 Support</p>
-          <p className="text-sm mb-5 font-medium">10% referral Commission</p>
-          <p className="text-sm mb-4">Min. $50 Max: $999</p>
-          <button className="bg-white text-black px-8 mt-7 py-2 rounded-full font-semibold shadow hover:scale-105 transition">
-            Invest Now
-          </button>
-        </div>
-
-        {/* Silver Plan */}
-        <div className="bg-gradient-to-br from-indigo-400 to-green-300 text-white rounded-2xl p-6 w-80 text-center shadow-xl hover:scale-110 transition duration-300">
-          <h2 className="text-[32px] font-extrabold">Silver Plan</h2>
-          <p className="text-[62px] font-extrabold">5 %</p>
-          <p className="text-[16px] mb-3 font-medium">
-            For 24 Hours / 1 Returns
-          </p>
-          <div className="bg-green-600 text-white text-xs font-bold py-1 mt-5 mb-8 px-2 rounded inline-block">
-            Capital Will Return Back
-          </div>
-          <p className="text-sm mb-5 font-medium">24/7 Support</p>
-          <p className="text-sm mb-5 font-medium">10% referral Commission</p>
-          <p className="text-sm mb-4">Min. $1000 Max: $4999</p>
-          <button className="bg-white text-black px-8 mt-7 py-2 rounded-full font-semibold shadow hover:scale-105 transition">
-            Invest Now
-          </button>
-        </div>
-
-        {/* Gold Plan */}
-        <div className="bg-gradient-to-br from-yellow-400 to-pink-500 text-white rounded-2xl p-6 w-80 text-center shadow-xl hover:scale-110 transition duration-300">
-          <h2 className="text-[32px] font-extrabold">Gold Plan</h2>
-          <p className="text-[62px] font-extrabold">10 %</p>
-          <p className="text-[16px] mb-3 font-medium">
-            For 48 Hours / 1 Returns
-          </p>
-          <div className="bg-green-600 text-white text-xs font-bold py-1 mt-5 mb-8 px-2 rounded inline-block">
-            Capital Will Return Back
-          </div>
-          <p className="text-sm mb-5 font-medium">24/7 Support</p>
-          <p className="text-sm mb-5 font-medium">10% referral Commission</p>
-          <p className="text-sm mb-4">Min. $5000 Max: $100000</p>
-          <button className="bg-white text-black px-8 mt-7 py-2 rounded-full font-semibold shadow hover:scale-105 transition">
-            Invest Now
-          </button>
-        </div>
+        ))}
       </div>
     </section>
   );

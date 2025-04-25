@@ -35,16 +35,16 @@ const experiences = [
 
 const ExperienceCards = () => {
   return (
-    <section className="px-4 py-12 bg-gray-50">
+    <section className="px-4 py-12 bg-gray-50 ">
       <div className="max-w-6xl mx-auto space-y-36">
         {[0, 1].map((sectionIndex) => (
           <div
             key={sectionIndex}
-            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"
+            className="grid space-y-36 sm:space-y-0 md:space-y-0 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"
           >
             {experiences.slice(sectionIndex * 3, sectionIndex * 3 + 3).map((exp, index) => (
               <div key={index} className="relative bg-[#FD4A36] hover:bg-[#7C352D] rounded-xl p-6 min-h-[300px]">
-                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 bg-white rounded-md shadow-lg p-6 w-[90%]  text-center">
+                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 bg-white rounded-md shadow-lg p-6 w-[90%] text-center">
                   <div className="text-black mb-2">{exp.icon}</div>
                   <h4 className="text-red-500 font-bold text-lg mb-2">{exp.title}</h4>
                   <p className="text-gray-600 text-sm border-t border-dashed pt-2">{exp.description}</p>
