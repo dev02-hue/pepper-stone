@@ -7,6 +7,7 @@ import RegisterSection from "./components/home/RegisterSection";
 import PricingPlans from "./components/home/PricingPlans";
 import InvestmentCalculator from "./components/home/InvestmentCalculator";
 import LiveChart from "./components/home/LiveChart";
+import FAQComponent from "./components/home/FAQComponent";
  
  
 export default function Home() {
@@ -21,6 +22,7 @@ export default function Home() {
       <PricingPlans />
       <InvestmentCalculator />
       <LiveChart />
+      <FAQComponent />
       </>
   );
 }

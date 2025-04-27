@@ -29,7 +29,7 @@ export const Nav = () => {
       {/* Top bar */}
       <div className="bg-white text-sm text-gray-600 flex justify-between items-center px-4 py-2 border-b">
         <p> Level 4, 114 William Street, Melbourne VIC 3000, Australia</p>
-        <a href="mailto:support@bitcistackasset.com" className="text-red-500">
+        <a href="mailto:trade3865@gmail.com" className="text-red-500">
         trade3865@gmail.com
         </a>
       </div>
