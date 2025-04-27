@@ -28,7 +28,7 @@ export const Nav = () => {
     <header className={`${poppins.className} w-full`}>
       {/* Top bar */}
       <div className="bg-white text-sm text-gray-600 flex justify-between items-center px-4 py-2 border-b">
-        <p>TITC House City Road Auckland CBD, Auckland 1701, New Zealand</p>
+        <p> Level 4, 114 William Street, Melbourne VIC 3000, Australia</p>
         <a href="mailto:support@bitcistackasset.com" className="text-red-500">
           support@bitcistackasset.com
         </a>
