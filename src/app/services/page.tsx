@@ -1,8 +1,9 @@
 import React from 'react'
+import ServicesComponent from '../components/blogs/ServicesComponent';
 
 const page = () => {
   return (
-    <div>page</div>
+    <><ServicesComponent /></>
   )
 }
 
