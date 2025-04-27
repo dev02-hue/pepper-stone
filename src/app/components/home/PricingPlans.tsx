@@ -1,6 +1,14 @@
+import { Inter } from 'next/font/google';
+
+const inter = Inter({
+    subsets: ['latin'],
+    weight: ['400', '600', '700'],  
+    display: 'swap',
+  });
+
 export default function PricingPlans() {
   return (
-    <section className="py-20 px-4 sm:px-6 lg:px-10 bg-white">
+    <section className={`${inter.className} py-20 px-4 sm:px-6 lg:px-10 bg-white`}>
       {/* Title Section */}
       <div className="mb-16 sm:pl-10 lg:pl-20">
         <h3 className="text-[#FF6347] font-bold text-base sm:text-lg md:text-xl lg:text-2xl border-l-4 border-[#FF6347] pl-3 inline-block">
@@ -20,21 +28,21 @@ export default function PricingPlans() {
         {[
           {
             title: "Bronze Plan",
-            percent: "3.5 %",
+            percent: "400 %",
             duration: "For 24 Hours / 1 Returns",
-            range: "Min. $50 Max: $999",
+            range: "Min. $300 Max: $999",
             colors: "from-pink-300 to-yellow-300",
           },
           {
             title: "Silver Plan",
-            percent: "5 %",
+            percent: "500 %",
             duration: "For 24 Hours / 1 Returns",
             range: "Min. $1000 Max: $4999",
             colors: "from-indigo-400 to-green-300",
           },
           {
             title: "Gold Plan",
-            percent: "10 %",
+            percent: "550 %",
             duration: "For 48 Hours / 1 Returns",
             range: "Min. $5000 Max: $100000",
             colors: "from-yellow-400 to-pink-500",

@@ -3,6 +3,14 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
 
+import { Inter } from 'next/font/google';
+
+const inter = Inter({
+    subsets: ['latin'],
+    weight: ['400', '600', '700'],  
+    display: 'swap',
+  });
+
 // Types
 type Plan = {
   name: string;
@@ -35,19 +43,19 @@ type ConversionResult = {
 const plans: Plan[] = [
   {
     name: "Bronze Plan",
-    percent: 3.5,
+    percent: 400,
     duration: "24 Hours",
-    range: { min: 50, max: 999 },
+    range: { min: 300, max: 999 },
   },
   {
     name: "Silver Plan",
-    percent: 5,
+    percent: 500,
     duration: "24 Hours",
     range: { min: 1000, max: 4999 },
   },
   {
     name: "Gold Plan",
-    percent: 10,
+    percent: 550,
     duration: "48 Hours",
     range: { min: 5000, max: 100000 },
   },
@@ -190,7 +198,7 @@ export default function InvestmentCalculator() {
     if (activeTab === "news" && news.length === 0) {
       fetchNews();
     }
-  }, [activeTab]);
+  }, [activeTab, news.length]);
 
   // Convert currencies when inputs change (with debounce)
   useEffect(() => {
@@ -204,7 +212,7 @@ export default function InvestmentCalculator() {
   }, [cryptoAmount, fromCrypto, toCrypto, activeTab]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 to-orange-400 py-12 px-4 sm:px-6 lg:px-8">
+    <div className={`${inter.className} min-h-screen bg-gradient-to-br from-purple-900 to-orange-400 py-12 px-4 sm:px-6 lg:px-8`}>
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
