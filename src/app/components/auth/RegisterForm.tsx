@@ -1,8 +1,11 @@
 'use client'
 import { motion } from 'framer-motion'
 import { FaArrowRight, FaUser, FaEnvelope, FaLock, FaTicketAlt } from 'react-icons/fa'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useAppDispatch, useAppSelector } from '@/redux/hooks'
+import { registerUser, resetRegisterStatus } from '@/redux/authSlice'
+import { useRouter } from 'next/navigation'
 
 const RegisterForm = () => {
   const [formData, setFormData] = useState({
@@ -11,8 +14,17 @@ const RegisterForm = () => {
     password: '',
     referralCode: ''
   })
-  const [isLoading, setIsLoading] = useState(false)
   const [passwordError, setPasswordError] = useState('')
+  const dispatch = useAppDispatch()
+  const router = useRouter()
+  
+  const { registerStatus, registerError } = useAppSelector((state) => state.auth)
+
+  useEffect(() => {
+    return () => {
+      dispatch(resetRegisterStatus())
+    }
+  }, [dispatch])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -40,15 +52,23 @@ const RegisterForm = () => {
     
     if (passwordError) return
     
-    setIsLoading(true)
-    console.log('Registering with:', formData)
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    setIsLoading(false)
+    dispatch(registerUser({
+      name: formData.name,
+      email: formData.email,
+      password: formData.password,
+      referralCode: formData.referralCode || undefined
+    }))
   }
 
+  // Redirect on successful registration
+  useEffect(() => {
+    if (registerStatus === 'succeeded') {
+      router.push('/dashboard')
+    }
+  }, [registerStatus, router])
+
   return (
-    <div className="min-h-screen flex items-center justify-center  p-4">
+    <div className="min-h-screen flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -64,6 +84,26 @@ const RegisterForm = () => {
           >
             Create Your Account
           </motion.h2>
+
+          {registerError && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="mb-4 p-3 bg-red-100 text-red-700 rounded-md text-sm"
+            >
+              {registerError}
+            </motion.div>
+          )}
+
+          {registerStatus === 'succeeded' && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="mb-4 p-3 bg-green-100 text-green-700 rounded-md text-sm"
+            >
+              Registration successful! Redirecting...
+            </motion.div>
+          )}
           
           <form onSubmit={handleSubmit}>
             {/* Name Field */}
@@ -177,12 +217,12 @@ const RegisterForm = () => {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               type="submit"
-              disabled={isLoading || passwordError !== ''}
+              disabled={registerStatus === 'loading' || passwordError !== ''}
               className={`w-full flex items-center justify-center py-2 px-4 rounded-md text-white font-medium ${
-                isLoading || passwordError ? 'bg-gray-400' : 'bg-[#FD4A36] hover:bg-[#e0412e]'
+                registerStatus === 'loading' || passwordError ? 'bg-gray-400' : 'bg-[#FD4A36] hover:bg-[#e0412e]'
               }`}
             >
-              {isLoading ? (
+              {registerStatus === 'loading' ? (
                 'Creating Account...'
               ) : (
                 <>
@@ -214,4 +254,4 @@ const RegisterForm = () => {
   )
 }
 
-export default RegisterForm;
+export default RegisterForm
