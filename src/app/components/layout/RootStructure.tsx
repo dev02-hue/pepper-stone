@@ -10,8 +10,8 @@ export default function RootStructure({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
-  const isDashboard = pathname?.startsWith('/user/dashboard') || 
-                     pathname?.startsWith('/joker/dashboard')
+  const isDashboard = pathname?.startsWith('/user') || 
+                     pathname?.startsWith('/joker')
 
   return (
     <>

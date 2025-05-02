@@ -1,70 +1,158 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
+import { motion, useAnimation } from 'framer-motion'
 import { 
-  FiHome, 
   FiDollarSign, 
-  FiCreditCard, 
   FiUser, 
-  FiSettings
+  FiSettings,
+  FiPieChart,
+  FiClock,
+  FiEye,
+  FiEyeOff
 } from 'react-icons/fi'
-import { FaWallet, FaChevronLeft, FaChevronRight } from 'react-icons/fa'
+import { FaBitcoin, FaWallet, FaPlus, FaMinus } from 'react-icons/fa'
+import { RiExchangeDollarLine } from 'react-icons/ri'
 
 const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [activeItem, setActiveItem] = useState('dashboard')
-  const balance = 1250.50 // Removed unused setBalance
+  const [showBalance, setShowBalance] = useState(true)
+  const controls = useAnimation()
+
+  const balance = 1250.50
+  const btcBalance = 0.0425
+
+  // Sample transaction history data
+  const transactions = [
+    { id: 1, type: 'deposit', amount: 500, currency: 'USD', time: '10:30 AM' },
+    { id: 2, type: 'withdrawal', amount: 200, currency: 'USD', time: 'Yesterday' },
+    { id: 3, type: 'transfer', amount: 0.005, currency: 'BTC', time: 'Mar 15' }
+  ]
 
   const menuItems = [
-    { name: 'dashboard', icon: <FiHome size={20} />, label: 'Dashboard' },
-    { name: 'deposit', icon: <FiDollarSign size={20} />, label: 'Deposit' },
-    { name: 'withdrawal', icon: <FiCreditCard size={20} />, label: 'Withdrawal' },
+    { name: 'dashboard', icon: <FiPieChart size={20} />, label: 'Dashboard' },
+    { name: 'deposit', icon: <FiDollarSign size={20} />, label: 'Deposits' },
+    { name: 'withdrawal', icon: <RiExchangeDollarLine size={20} />, label: 'Withdrawals' },
     { name: 'wallet', icon: <FaWallet size={20} />, label: 'Wallet' },
+    { name: 'history', icon: <FiClock size={20} />, label: 'Transactions' },
     { name: 'profile', icon: <FiUser size={20} />, label: 'Profile' },
-    { name: 'settings', icon: <FiSettings size={20} />, label: 'Settings' },
+    { name: 'setting', icon: <FiSettings size={20} />, label: 'Settings' },
   ]
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth <= 320) {
+        setIsCollapsed(true)
+      } else if (window.innerWidth >= 768) {
+        setIsCollapsed(false)
+      }
+    }
+
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  useEffect(() => {
+    controls.start({
+      width: isCollapsed ? 80 : 280,
+      transition: { duration: 0.3, ease: "easeInOut" }
+    })
+  }, [isCollapsed, controls])
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed)
   }
 
+  const toggleBalanceVisibility = () => {
+    setShowBalance(!showBalance)
+  }
+
   return (
     <motion.div
-      initial={{ width: 250 }}
-      animate={{ width: isCollapsed ? 80 : 250 }}
-      transition={{ duration: 0.3 }}
-      className={`h-screen bg-[#1A1A1A] text-white flex flex-col border-r border-[#2D2D2D]`}
+      animate={controls}
+      initial={{ width: 280 }}
+      className={`h-screen bg-gradient-to-b from-[#0F0F0F] to-[#1A1A1A] text-white flex flex-col border-r border-[#2D2D2D] shadow-xl relative`}
     >
-      {/* Balance Display */}
+      {/* Premium Collapse Button - Top Right */}
+      <motion.div
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        onClick={toggleSidebar}
+        className="absolute -right-3 top-4 z-10 bg-[#FD4A36] rounded-full p-2 shadow-lg cursor-pointer border-2 border-[#2D2D2D]"
+      >
+        {isCollapsed ? (
+          <FaPlus className="text-white text-sm" />
+        ) : (
+          <FaMinus className="text-white text-sm" />
+        )}
+      </motion.div>
+
+      {/* Premium Balance Display */}
       <motion.div
         initial={{ opacity: 1 }}
         animate={{ opacity: isCollapsed ? 0 : 1 }}
-        className="p-4 border-b border-[#2D2D2D]"
+        className="p-5 border-b border-[#2D2D2D] bg-[#0F0F0F]"
       >
-        <div className="text-xs text-gray-400 mb-1">Your Balance</div>
-        <div className="text-2xl font-bold text-[#FD4A36]">${balance.toFixed(2)}</div>
+        <div className="flex justify-between items-center mb-2">
+          <span className="text-xs text-gray-400 font-medium tracking-wider">TOTAL BALANCE</span>
+          <div className="flex items-center space-x-2">
+            <button 
+              onClick={toggleBalanceVisibility}
+              className="text-gray-400 hover:text-white transition-colors"
+            >
+              {showBalance ? <FiEye size={16} /> : <FiEyeOff size={16} />}
+            </button>
+            <div className="w-6 h-6 rounded-full bg-[#FD4A36] bg-opacity-20 flex items-center justify-center">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 1v22M17 5l-5-5-5 5"></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+        {showBalance ? (
+          <>
+            <div className="text-3xl font-bold text-white mb-1">
+              ${balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
+            <div className="flex items-center text-sm text-gray-400">
+              <FaBitcoin className="mr-1 text-amber-500" />
+              <span>{btcBalance} BTC</span>
+              <span className="mx-2">•</span>
+              <span className="text-green-500">↑ 2.4%</span>
+            </div>
+          </>
+        ) : (
+          <div className="text-3xl font-bold text-white mb-1">••••••</div>
+        )}
       </motion.div>
 
-      {/* Menu Items */}
-      <div className="flex-1 overflow-y-auto py-4">
+      {/* Enhanced Menu Items */}
+      <div className="flex-1 overflow-y-auto py-4 px-2">
         {menuItems.map((item) => (
-          <Link href={`/${item.name}`} key={item.name}>
+          <Link href={`/user/${item.name}`} key={item.name}>
             <motion.div
-              whileHover={{ backgroundColor: '#2D2D2D' }}
+              whileHover={{ backgroundColor: '#252525' }}
               whileTap={{ scale: 0.98 }}
-              className={`flex items-center px-4 py-3 cursor-pointer ${
-                activeItem === item.name ? 'bg-[#2D2D2D] border-l-4 border-[#FD4A36]' : ''
+              className={`flex items-center px-4 py-3 mx-2 rounded-lg cursor-pointer transition-all ${
+                activeItem === item.name 
+                  ? 'bg-[#FD4A36] bg-opacity-10 border-l-[3px] border-[#FD4A36]' 
+                  : 'hover:bg-[#252525]'
               }`}
               onClick={() => setActiveItem(item.name)}
             >
-              <div className="text-gray-300">
+              <div className={`${activeItem === item.name ? 'text-[#FD4A36]' : 'text-gray-300'}`}>
                 {item.icon}
               </div>
               <motion.span
                 initial={{ opacity: 1 }}
                 animate={{ opacity: isCollapsed ? 0 : 1 }}
-                className={`ml-3 ${isCollapsed ? 'hidden' : 'block'}`}
+                className={`ml-3 text-sm font-medium ${
+                  isCollapsed ? 'hidden' : 'block'
+                } ${
+                  activeItem === item.name ? 'text-white' : 'text-gray-400'
+                }`}
               >
                 {item.label}
               </motion.span>
@@ -73,19 +161,47 @@ const Sidebar = () => {
         ))}
       </div>
 
-      {/* Collapse Button */}
-      <div 
-        className="p-4 border-t border-[#2D2D2D] flex justify-end cursor-pointer"
-        onClick={toggleSidebar}
-      >
-        {isCollapsed ? (
-          <FaChevronRight className="text-gray-400" />
-        ) : (
-          <FaChevronLeft className="text-gray-400" />
-        )}
-      </div>
+      {/* Transaction History Section */}
+      {!isCollapsed && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-4 border-t border-[#2D2D2D]"
+        >
+          <h3 className="text-xs text-gray-400 font-medium tracking-wider mb-2">RECENT TRANSACTIONS</h3>
+          <div className="space-y-3">
+            {transactions.map((tx) => (
+              <div key={tx.id} className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                    tx.type === 'deposit' ? 'bg-green-900 bg-opacity-30 text-green-400' :
+                    tx.type === 'withdrawal' ? 'bg-red-900 bg-opacity-30 text-red-400' :
+                    'bg-blue-900 bg-opacity-30 text-blue-400'
+                  }`}>
+                    {tx.type === 'deposit' ? '↓' : tx.type === 'withdrawal' ? '↑' : '⇄'}
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm font-medium text-white capitalize">{tx.type}</p>
+                    <p className="text-xs text-gray-400">{tx.time}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className={`text-sm font-medium ${
+                    tx.type === 'deposit' ? 'text-green-400' :
+                    tx.type === 'withdrawal' ? 'text-red-400' :
+                    'text-blue-400'
+                  }`}>
+                    {tx.type === 'deposit' ? '+' : tx.type === 'withdrawal' ? '-' : ''}
+                    {tx.amount} {tx.currency}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      )}
     </motion.div>
   )
 }
 
-export default Sidebar;
+export default Sidebar
