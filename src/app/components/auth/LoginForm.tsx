@@ -19,17 +19,28 @@ const LoginForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const result = await dispatch(loginUser({ email, password }))
-    
-    if (loginUser.fulfilled.match(result)) {
-      // Store user data in localStorage
-      localStorage.setItem('user', JSON.stringify(result.payload.user))
-      router.push('/dashboard')
+    console.log('[LoginForm] Submitting login with:', { email, password })
+  
+    try {
+      const result = await dispatch(loginUser({ email, password }))
+      console.log('[LoginForm] Dispatch result:', result)
+  
+      if (loginUser.fulfilled.match(result)) {
+        console.log('[LoginForm] Login successful:', result.payload)
+  
+        // Store user data in localStorage
+        localStorage.setItem('user', JSON.stringify(result.payload.user))
+        router.push('/user/dashboard')
+      } else {
+        console.warn('[LoginForm] Login failed:', result)
+      }
+    } catch (err) {
+      console.error('[LoginForm] Unexpected error during login:', err)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black p-4">
+    <div className="min-h-screen flex items-center justify-center  p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -132,7 +143,7 @@ const LoginForm = () => {
             transition={{ delay: 0.6 }}
             className="mt-6 text-center"
           >
-            <Link href="/forgot-password" className="text-sm text-[#FD4A36] hover:underline">
+            <Link href="/resetpassword" className="text-sm text-[#FD4A36] hover:underline">
               Forgot password?
             </Link>
             <p className="mt-2 text-sm text-gray-600">
