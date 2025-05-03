@@ -18,8 +18,8 @@ const HeroSection: React.FC = () => {
       title: "We provide solutions to grow your business",
       description: "Discover innovative strategies and tools to expand your business and reach new markets efficiently.",
       buttons: [
-        { text: "Learn More", href: "/learn-more" },
-        { text: "Get Started", href: "/get-started" }
+        { text: "Learn More", href: "/about" },
+        { text: "Get Started", href: "/login" }
       ],
       image: "/pictures5.jpg",
     },
@@ -28,7 +28,7 @@ const HeroSection: React.FC = () => {
       description: "Professional investment management with proven results and personalized financial strategies.",
       buttons: [
         { text: "View Services", href: "/services" },
-        { text: "Start Planning", href: "/financial-planning" }
+        { text: "Start Planning", href: "/plan" }
       ],
       image: "/pictures7.jpg",
     },

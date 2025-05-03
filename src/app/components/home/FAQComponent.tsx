@@ -16,7 +16,7 @@ const FAQComponent = () => {
     },
     {
       question: "What are your minimum investment requirements?",
-      answer: "Minimum investments vary by product. Our standard investment plans start at $500, while premium services require minimum balances of $10,000. Certain specialized products may have higher minimums."
+      answer: "Minimum investments vary by product. Our bronze investment plans start at $300, while silver require minimum balances of $5,000. Certain specialized products may have higher minimums."
     },
     {
       question: "How secure is my personal and financial information?",
