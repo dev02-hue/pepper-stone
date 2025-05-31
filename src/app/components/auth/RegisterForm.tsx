@@ -1,30 +1,25 @@
 'use client'
 import { motion } from 'framer-motion'
 import { FaArrowRight, FaUser, FaEnvelope, FaLock, FaTicketAlt } from 'react-icons/fa'
-import { useState, useEffect } from 'react'
+import { useState} from 'react'
 import Link from 'next/link'
-import { useAppDispatch, useAppSelector } from '@/redux/hooks'
-import { registerUser, resetRegisterStatus } from '@/redux/authSlice'
 import { useRouter } from 'next/navigation'
-
+import { signUp } from '@/lib/auth'
+ 
 const RegisterForm = () => {
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
+    phone: '',
     password: '',
-    referralCode: ''
+    referredCode: ''
   })
   const [passwordError, setPasswordError] = useState('')
-  const dispatch = useAppDispatch()
+  const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [isSuccess, setIsSuccess] = useState(false)
   const router = useRouter()
-  
-  const { registerStatus, registerError } = useAppSelector((state) => state.auth)
-
-  useEffect(() => {
-    return () => {
-      dispatch(resetRegisterStatus())
-    }
-  }, [dispatch])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -35,16 +30,13 @@ const RegisterForm = () => {
 
     // Validate password in real-time
     if (name === 'password') {
-      if (value.length < 8) {
-        setPasswordError('Password must be at least 8 characters')
-      } else if (!/[A-Z]/.test(value)) {
-        setPasswordError('Password must contain at least one uppercase letter')
-      } else if (!/[0-9]/.test(value)) {
-        setPasswordError('Password must contain at least one number')
+      if (value.length < 6) {
+        setPasswordError('Password must be at least 6 characters long.')
       } else {
         setPasswordError('')
       }
     }
+     
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -52,20 +44,32 @@ const RegisterForm = () => {
     
     if (passwordError) return
     
-    dispatch(registerUser({
-      name: formData.name,
-      email: formData.email,
-      password: formData.password,
-      referralCode: formData.referralCode || undefined
-    }))
-  }
+    setIsLoading(true)
+    setError('')
+    
+    try {
+      const result = await signUp({
+        email: formData.email,
+        password: formData.password,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        referredCode: formData.referredCode || undefined
+      })
 
-  // Redirect on successful registration
-  useEffect(() => {
-    if (registerStatus === 'succeeded') {
-      router.push('/dashboard')
+      if (result.error) {
+        setError(result.error)
+      } else {
+        setIsSuccess(true)
+        // Redirect after a short delay
+        setTimeout(() => router.push('/login'), 2000)
+      }
+    } catch (err) {
+      setError('An unexpected error occurred. Please try again.')
+      console.error('Registration error:', err)
+    } finally {
+      setIsLoading(false)
     }
-  }, [registerStatus, router])
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
@@ -85,17 +89,17 @@ const RegisterForm = () => {
             Create Your Account
           </motion.h2>
 
-          {registerError && (
+          {error && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="mb-4 p-3 bg-red-100 text-red-700 rounded-md text-sm"
             >
-              {registerError}
+              {error}
             </motion.div>
           )}
 
-          {registerStatus === 'succeeded' && (
+          {isSuccess && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -106,25 +110,51 @@ const RegisterForm = () => {
           )}
           
           <form onSubmit={handleSubmit}>
-            {/* Name Field */}
+            {/* First Name Field */}
             <motion.div
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
               className="mb-4"
             >
-              <label htmlFor="name" className="block text-gray-700 text-sm font-medium mb-2">
-                Full Name
+              <label htmlFor="firstName" className="block text-gray-700 text-sm font-medium mb-2">
+                First Name
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <FaUser className="text-gray-400" />
                 </div>
                 <input
-                  id="name"
-                  name="name"
+                  id="firstName"
+                  name="firstName"
                   type="text"
-                  value={formData.name}
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  className="w-full pl-10 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FD4A36]"
+                  required
+                />
+              </div>
+            </motion.div>
+
+            {/* Last Name Field */}
+            <motion.div
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+              className="mb-4"
+            >
+              <label htmlFor="lastName" className="block text-gray-700 text-sm font-medium mb-2">
+                Last Name
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FaUser className="text-gray-400" />
+                </div>
+                <input
+                  id="lastName"
+                  name="lastName"
+                  type="text"
+                  value={formData.lastName}
                   onChange={handleChange}
                   className="w-full pl-10 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FD4A36]"
                   required
@@ -154,6 +184,31 @@ const RegisterForm = () => {
                   onChange={handleChange}
                   className="w-full pl-10 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FD4A36]"
                   required
+                />
+              </div>
+            </motion.div>
+
+            {/* Phone Field (Optional) */}
+            <motion.div
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.35 }}
+              className="mb-4"
+            >
+              <label htmlFor="phone" className="block text-gray-700 text-sm font-medium mb-2">
+                Phone Number (Optional)
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FaUser className="text-gray-400" />
+                </div>
+                <input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  className="w-full pl-10 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FD4A36]"
                 />
               </div>
             </motion.div>
@@ -194,7 +249,7 @@ const RegisterForm = () => {
               transition={{ delay: 0.45 }}
               className="mb-6"
             >
-              <label htmlFor="referralCode" className="block text-gray-700 text-sm font-medium mb-2">
+              <label htmlFor="referredCode" className="block text-gray-700 text-sm font-medium mb-2">
                 Referral Code (Optional)
               </label>
               <div className="relative">
@@ -202,10 +257,10 @@ const RegisterForm = () => {
                   <FaTicketAlt className="text-gray-400" />
                 </div>
                 <input
-                  id="referralCode"
-                  name="referralCode"
+                  id="referredCode"
+                  name="referredCode"
                   type="text"
-                  value={formData.referralCode}
+                  value={formData.referredCode}
                   onChange={handleChange}
                   className="w-full pl-10 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FD4A36]"
                   placeholder="Enter if you have one"
@@ -217,12 +272,12 @@ const RegisterForm = () => {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               type="submit"
-              disabled={registerStatus === 'loading' || passwordError !== ''}
+              disabled={isLoading || passwordError !== ''}
               className={`w-full flex items-center justify-center py-2 px-4 rounded-md text-white font-medium ${
-                registerStatus === 'loading' || passwordError ? 'bg-gray-400' : 'bg-[#FD4A36] hover:bg-[#e0412e]'
+                isLoading || passwordError ? 'bg-gray-400' : 'bg-[#FD4A36] hover:bg-[#e0412e]'
               }`}
             >
-              {registerStatus === 'loading' ? (
+              {isLoading ? (
                 'Creating Account...'
               ) : (
                 <>

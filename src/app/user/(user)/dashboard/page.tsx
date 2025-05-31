@@ -1,5 +1,5 @@
 'use client'
-import { useState} from 'react'
+import { useEffect, useState} from 'react'
 import { 
   AreaChart, Area, BarChart, Bar, LineChart, Line, XAxis, YAxis, 
   CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell 
@@ -12,12 +12,16 @@ import {
 import { FaBitcoin, FaEthereum } from 'react-icons/fa'
 import { SiBinance, SiDogecoin, SiLitecoin, SiRipple } from 'react-icons/si'
 import { TbCurrencySolana } from 'react-icons/tb'
+import { getUserBalance } from '@/lib/getUserBalance' 
+
 
 const CryptoDashboard = () => {
   const [activeTab, setActiveTab] = useState('portfolio')
   const [timeRange, setTimeRange] = useState('7d')
   const [isLoading, setIsLoading] = useState(false)
   const [darkMode, setDarkMode] = useState(true)
+  const [balanceData, setBalanceData] = useState<{ balance?: number, error?: string }>({})
+
 
   // Mock data
   const portfolioData = [
@@ -47,6 +51,26 @@ const CryptoDashboard = () => {
 
   const COLORS = ['#FD4A36', '#8884d8', '#FFBB28', '#00C49F']
 
+
+ // Fetch user balance
+ const fetchBalance = async () => {
+  setIsLoading(true)
+  try {
+    const result = await getUserBalance()
+    setBalanceData(result)
+  } catch (error) {
+    console.log(error)
+    setBalanceData({ error: 'Failed to fetch balance' })
+  } finally {
+    setIsLoading(false)
+  }
+}
+
+useEffect(() => {
+  fetchBalance()
+}, [])
+
+
   // Calculate totals
   const totalBalance = portfolioData.reduce((sum, item) => sum + item.value, 0)
   const totalProfit = portfolioData.reduce((sum, item) => sum + (item.value * (item.change / 100)), 0)
@@ -65,6 +89,21 @@ const CryptoDashboard = () => {
       maximumFractionDigits: 2
     }).format(value)
   }
+
+  const renderBalance = () => {
+    if (balanceData.error) {
+      return (
+        <div className="text-red-500 text-sm">
+          {balanceData.error === 'signin' ? 'Please sign in' : balanceData.error}
+        </div>
+      )
+    }
+    if (balanceData.balance !== undefined) {
+      return formatCurrency(balanceData.balance)
+    }
+    return 'Loading...'
+  }
+
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
@@ -104,7 +143,7 @@ const CryptoDashboard = () => {
             <div className="flex justify-between items-start">
               <div>
                 <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total Balance</p>
-                <h2 className="text-2xl font-bold mt-1">{formatCurrency(totalBalance)}</h2>
+                <h2 className="text-2xl font-bold mt-1">{renderBalance()}</h2>
               </div>
               <div className={`p-3 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
                 <FiDollarSign className="text-[#FD4A36]" size={20} />
