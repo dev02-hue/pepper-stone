@@ -14,17 +14,23 @@ import {
 import { FaBitcoin, FaWallet, FaPlus, FaMinus } from 'react-icons/fa'
 import { RiExchangeDollarLine } from 'react-icons/ri'
 import { getUserBalance } from '@/lib/getUserBalance'
+import { getUserWalletBalances } from '@/lib/getUserWalletBalances'
+
  
 const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [activeItem, setActiveItem] = useState('dashboard')
   const [showBalance, setShowBalance] = useState(true)
   const [balance, setBalance] = useState<number | null>(null)
+  const [btcBalance, setBtcBalance] = useState<number>(0)
+  const [loading, setLoading] = useState(true)
+
+
 
   const controls = useAnimation()
 
   // const balance = 1250.50
-  const btcBalance = 0.0425
+ 
 
   // Sample transaction history data
   const transactions = [
@@ -44,24 +50,29 @@ const Sidebar = () => {
   ]
 
   useEffect(() => {
-    const fetchBalance = async () => {
+    const fetchBalances = async () => {
       try {
-        const response = await getUserBalance()
-        if (response && typeof response.balance === 'number') {
-          setBalance(response.balance)
-        } else {
-          console.error('Invalid balance response:', response)
-          setBalance(null)
+        setLoading(true)
+        
+        // Fetch USD balance
+        const usdResponse = await getUserBalance()
+        if (usdResponse && typeof usdResponse.balance === 'number') {
+          setBalance(usdResponse.balance)
+        }
+        
+        // Fetch wallet balances
+        const walletResponse = await getUserWalletBalances()
+        if (walletResponse && !walletResponse.error) {
+          setBtcBalance(walletResponse.balances?.BTC)
         }
       } catch (error) {
-        console.error('Failed to fetch balance:', error)
-        setBalance(null)
+        console.error('Failed to fetch balances:', error)
       } finally {
-        // setLoading(false)
+        setLoading(false)
       }
     }
 
-    fetchBalance()
+    fetchBalances()
   }, [])
 
 
@@ -147,7 +158,7 @@ const Sidebar = () => {
             </div>
             <div className="flex items-center text-sm text-gray-400">
               <FaBitcoin className="mr-1 text-amber-500" />
-              <span>{btcBalance} BTC</span>
+              <span>{loading ? '...' : btcBalance.toFixed(8)} BTC</span>
               <span className="mx-2">•</span>
               <span className="text-green-500">↑ 2.4%</span>
             </div>
