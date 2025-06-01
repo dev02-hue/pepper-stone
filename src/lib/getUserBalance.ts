@@ -5,7 +5,7 @@ import { cookies } from 'next/headers';
 import { supabase } from './supabaseClient';
 
 export async function getUserBalance() {
-  const cookieStore =await cookies(); // no need to await cookies()
+  const cookieStore =await cookies();  
   const userId = cookieStore.get('user_id')?.value;
 
   if (!userId) {

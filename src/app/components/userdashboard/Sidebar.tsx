@@ -13,14 +13,17 @@ import {
 } from 'react-icons/fi'
 import { FaBitcoin, FaWallet, FaPlus, FaMinus } from 'react-icons/fa'
 import { RiExchangeDollarLine } from 'react-icons/ri'
-
+import { getUserBalance } from '@/lib/getUserBalance'
+ 
 const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [activeItem, setActiveItem] = useState('dashboard')
   const [showBalance, setShowBalance] = useState(true)
+  const [balance, setBalance] = useState<number | null>(null)
+
   const controls = useAnimation()
 
-  const balance = 1250.50
+  // const balance = 1250.50
   const btcBalance = 0.0425
 
   // Sample transaction history data
@@ -39,6 +42,28 @@ const Sidebar = () => {
     { name: 'profile', icon: <FiUser size={20} />, label: 'Profile' },
     { name: 'setting', icon: <FiSettings size={20} />, label: 'Settings' },
   ]
+
+  useEffect(() => {
+    const fetchBalance = async () => {
+      try {
+        const response = await getUserBalance()
+        if (response && typeof response.balance === 'number') {
+          setBalance(response.balance)
+        } else {
+          console.error('Invalid balance response:', response)
+          setBalance(null)
+        }
+      } catch (error) {
+        console.error('Failed to fetch balance:', error)
+        setBalance(null)
+      } finally {
+        // setLoading(false)
+      }
+    }
+
+    fetchBalance()
+  }, [])
+
 
   useEffect(() => {
     const handleResize = () => {
@@ -73,7 +98,7 @@ const Sidebar = () => {
     <motion.div
       animate={controls}
       initial={{ width: 280 }}
-      className={`h-screen bg-gradient-to-b from-[#0F0F0F] to-[#1A1A1A] text-white flex flex-col border-r border-[#2D2D2D] shadow-xl relative`}
+      className={`min-h-screen bg-gradient-to-b from-[#0F0F0F] to-[#1A1A1A] text-white flex flex-col border-r border-[#2D2D2D] shadow-xl relative`}
     >
       {/* Premium Collapse Button - Top Right */}
       <motion.div
@@ -114,7 +139,11 @@ const Sidebar = () => {
         {showBalance ? (
           <>
             <div className="text-3xl font-bold text-white mb-1">
-              ${balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {balance !== null ? (
+                `$${balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+              ) : (
+                'refresh '
+              )}
             </div>
             <div className="flex items-center text-sm text-gray-400">
               <FaBitcoin className="mr-1 text-amber-500" />
