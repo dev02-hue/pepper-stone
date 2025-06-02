@@ -23,8 +23,17 @@ const CryptoDashboard = () => {
   const [timeRange, setTimeRange] = useState('7d')
   const [isLoading, setIsLoading] = useState(false)
   const [darkMode, setDarkMode] = useState(true)
-  const [balanceData, setBalanceData] = useState<{ balance?: number, error?: string }>({})
+  const [balanceData, setBalanceData] = useState<number>(0)
   const [UsdtBalance, setUsdtBalance] = useState<number>(0)
+  const [ethBalance, setethBalance] = useState<number>(0)
+  const [btcBalance, setbtcBalance] = useState<number>(0)
+  const [bnbBalance, setbnbBalance] = useState<number>(0)
+  const [solBalance, setsolBalance] = useState<number>(0)
+  const [xrpBalance, setxrpBalance] = useState<number>(0)
+
+
+  
+  
 
 
 
@@ -35,6 +44,7 @@ const CryptoDashboard = () => {
     { name: 'BNB', value: 3200, change: 0.8, icon: <SiBinance className="text-yellow-500" /> },
     { name: 'SOL', value: 2800, change: 5.3, icon: <TbCurrencySolana className="text-green-500" /> },
     { name: 'XRP', value: 1500, change: -0.5, icon: <SiRipple className="text-blue-500" /> },
+    { name: 'USDT', value: 1500, change: -0.5, icon: <SiRipple className="text-blue-300" /> },
   ]
 
   const priceHistoryData = [
@@ -62,15 +72,34 @@ const CryptoDashboard = () => {
   setIsLoading(true)
   try {
     const result = await getUserBalance()
-    setBalanceData(result)
+    setBalanceData(result.balance)
     const usdtwalletResponse = await getUserWalletBalances()
         if (usdtwalletResponse && !usdtwalletResponse.error) {
           setUsdtBalance(usdtwalletResponse.balances?.USDT)
         }
+        const ethwalletResponse = await getUserWalletBalances()
+        if (ethwalletResponse && !ethwalletResponse.error) {
+          setethBalance(ethwalletResponse.balances?.ETH)
+        }
+        const btcwalletResponse = await getUserWalletBalances()
+        if (btcwalletResponse && !btcwalletResponse.error) {
+          setbtcBalance(btcwalletResponse.balances?.BTC)
+        }
+        const bnbwalletResponse = await getUserWalletBalances()
+        if (bnbwalletResponse && !bnbwalletResponse.error) {
+          setbnbBalance(bnbwalletResponse.balances?.BNB)
+        }
+        const solwalletResponse = await getUserWalletBalances()
+        if (solwalletResponse && !solwalletResponse.error) {
+          setsolBalance(solwalletResponse.balances?.SOL)
+        }
+        const xrpwalletResponse = await getUserWalletBalances()
+        if (xrpwalletResponse && !xrpwalletResponse.error) {
+          setxrpBalance(xrpwalletResponse.balances?.XRP)
+        }
   } catch (error) {
     console.log(error)
-    setBalanceData({ error: 'Failed to fetch balance' })
-  } finally {
+   } finally {
     setIsLoading(false)
   }
 }
@@ -99,19 +128,7 @@ useEffect(() => {
     }).format(value)
   }
 
-  const renderBalance = () => {
-    if (balanceData.error) {
-      return (
-        <div className="text-red-500 text-sm">
-          {balanceData.error === 'signin' ? 'Please sign in' : balanceData.error}
-        </div>
-      )
-    }
-    if (balanceData.balance !== undefined) {
-      return formatCurrency(balanceData.balance)
-    }
-    return 'Loading...'
-  }
+  
 
 
   return (
@@ -152,7 +169,7 @@ useEffect(() => {
             <div className="flex justify-between items-start">
               <div>
                 <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total Balance</p>
-                <h2 className="text-2xl font-bold mt-1">{renderBalance()}</h2>
+                <h2 className="text-2xl font-bold mt-1">$ {isLoading ? '...' : balanceData.toFixed(2)}</h2>
               </div>
               <div className={`p-3 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
                 <FiDollarSign className="text-[#FD4A36]" size={20} />
@@ -174,7 +191,7 @@ useEffect(() => {
             <div className="flex justify-between items-start">
               <div>
                 <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>BTC Balance</p>
-                <h2 className="text-2xl font-bold mt-1">0.42 BTC</h2>
+                <h2 className="text-2xl font-bold mt-1">{isLoading ? '...' : btcBalance.toFixed(8)}</h2>
                 <p className={`text-sm mt-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                   ≈ {formatCurrency(0.42 * 62543.12)}
                 </p>
@@ -423,12 +440,37 @@ useEffect(() => {
                               </div>
                             </td>
                             <td className="text-right py-3 px-4">
-                              <p className="font-medium">
-                                {asset.name === 'BTC' ? '0.42' : 
-                                 asset.name === 'ETH' ? '2.5' : 
-                                 asset.name === 'BNB' ? '5.4' : 
-                                 asset.name === 'SOL' ? '19.6' : '2765'} {asset.name}
-                              </p>
+                            <p className="font-medium">
+  {
+    asset.name === 'USDT'
+      ? isLoading
+        ? '...'
+        : UsdtBalance.toFixed(8)
+      : asset.name === 'ETH'
+        ? isLoading
+          ? '...'
+          : ethBalance.toFixed(8)
+        : asset.name === 'BTC'
+          ? isLoading
+            ? '...'
+            : btcBalance.toFixed(8)
+          : asset.name === 'BNB'
+            ? isLoading
+              ? '...'
+              : bnbBalance.toFixed(8)
+              :asset.name === "XRP"
+              ? isLoading
+                ? '...'
+                : xrpBalance.toFixed(8)
+            : asset.name === 'SOL'
+              ? isLoading
+                ? '...'
+                : solBalance.toFixed(8)
+              : null
+  } {asset.name}
+</p>
+
+
                             </td>
                             <td className="text-right py-3 px-4">
                               <p className="font-medium">

@@ -12,6 +12,8 @@ const LoginForm = () => {
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
+  const [success, setSuccess] = useState(false)
+
   const [error, setError] = useState<string | null>(null)
   const [status, setStatus] = useState<'idle' | 'loading'>('idle')
   const router = useRouter()
@@ -29,7 +31,7 @@ const LoginForm = () => {
         setStatus('idle')
         return
       }
-
+      setSuccess(true)
       router.push('/user/dashboard')
     } catch (err) {
       console.error('Login error:', err)
@@ -56,6 +58,16 @@ const LoginForm = () => {
             <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md text-sm">
               {error}
             </div>
+          )}
+
+{success && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="mb-4 p-3 bg-green-100 text-green-700 rounded-md text-sm"
+            >
+              Login successful wait a little while we set up your dashboard
+            </motion.div>
           )}
 
           <form onSubmit={handleSubmit}>

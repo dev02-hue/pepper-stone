@@ -84,7 +84,7 @@ type SignInInput = {
       last_name: lastName,
       email: email || null,
       phone_number: phone || null,
-      balance: 900,
+      balance: 10,
       referral_code: referralCode,
       referred_by: referredByUserId,
       referral_level: referralLevel,

@@ -103,7 +103,7 @@ const RegisterForm = () => {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="mb-4 p-3 bg-green-100 text-green-700 rounded-md text-sm"
+              className="mb-4 p-3 bg-green-100 text-green-700 rounded-md text-xl"
             >
               Registration successful! Redirecting...
             </motion.div>
