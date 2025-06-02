@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
 
@@ -149,7 +149,7 @@ export default function InvestmentCalculator() {
   };
 
   // Convert cryptocurrencies using CoinGecko API
-  const convertCurrency = async () => {
+  const convertCurrency = useCallback(async () => {
     if (typeof cryptoAmount !== "number" || cryptoAmount <= 0) {
       setConversionError("Please enter a valid amount");
       return;
@@ -191,7 +191,7 @@ export default function InvestmentCalculator() {
     } finally {
       setIsConverting(false);
     }
-  };
+  }, [cryptoAmount, fromCrypto, toCrypto]);
 
   // Load news when tab is switched to news
   useEffect(() => {
@@ -209,7 +209,7 @@ export default function InvestmentCalculator() {
       
       return () => clearTimeout(timer);
     }
-  }, [cryptoAmount, fromCrypto, toCrypto, activeTab]);
+  }, [cryptoAmount, fromCrypto, toCrypto, activeTab,convertCurrency]);
 
   return (
     <div className={`${inter.className} min-h-screen bg-gradient-to-br from-purple-900 to-orange-400 py-12 px-4 sm:px-6 lg:px-8`}>

@@ -63,9 +63,9 @@ const CryptoDashboard = () => {
   try {
     const result = await getUserBalance()
     setBalanceData(result)
-    const walletResponse = await getUserWalletBalances()
-        if (walletResponse && !walletResponse.error) {
-          setUsdtBalance(walletResponse.balances?.USDT)
+    const usdtwalletResponse = await getUserWalletBalances()
+        if (usdtwalletResponse && !usdtwalletResponse.error) {
+          setUsdtBalance(usdtwalletResponse.balances?.USDT)
         }
   } catch (error) {
     console.log(error)
