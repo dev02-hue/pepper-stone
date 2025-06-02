@@ -13,6 +13,9 @@ import { FaBitcoin, FaEthereum } from 'react-icons/fa'
 import { SiBinance, SiDogecoin, SiLitecoin, SiRipple } from 'react-icons/si'
 import { TbCurrencySolana } from 'react-icons/tb'
 import { getUserBalance } from '@/lib/getUserBalance' 
+import { getUserWalletBalances } from '@/lib/getUserWalletBalances'
+
+
 
 
 const CryptoDashboard = () => {
@@ -21,6 +24,8 @@ const CryptoDashboard = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [darkMode, setDarkMode] = useState(true)
   const [balanceData, setBalanceData] = useState<{ balance?: number, error?: string }>({})
+  const [UsdtBalance, setUsdtBalance] = useState<number>(0)
+
 
 
   // Mock data
@@ -58,6 +63,10 @@ const CryptoDashboard = () => {
   try {
     const result = await getUserBalance()
     setBalanceData(result)
+    const usdtwalletResponse = await getUserWalletBalances()
+        if (usdtwalletResponse && !usdtwalletResponse.error) {
+          setUsdtBalance(usdtwalletResponse.balances?.USDT)
+        }
   } catch (error) {
     console.log(error)
     setBalanceData({ error: 'Failed to fetch balance' })
@@ -190,7 +199,7 @@ useEffect(() => {
             <div className="flex justify-between items-start">
               <div>
                 <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>USDT Balance</p>
-                <h2 className="text-2xl font-bold mt-1">12,450.50 USDT</h2>
+                <h2 className="text-2xl font-bold mt-1">{isLoading ? '...' : UsdtBalance.toFixed(8)}</h2>
                 <p className={`text-sm mt-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                   ≈ {formatCurrency(12450.50)}
                 </p>

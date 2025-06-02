@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
-import ReduxProvider from "./components/utils/ReduxProvider"
+// import ReduxProvider from "./components/utils/ReduxProvider"
 import RootStructure from "./components/layout/RootStructure"
 import TelegramFloatButton from "./components/home/TelegramFloatButton"
  
@@ -28,12 +28,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <ReduxProvider>
+        
           <RootStructure>
             {children}
             <TelegramFloatButton />  
           </RootStructure>
-        </ReduxProvider>
+         
       </body>
     </html>
   )
