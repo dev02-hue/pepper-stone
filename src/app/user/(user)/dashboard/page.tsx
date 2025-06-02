@@ -1,12 +1,12 @@
 'use client'
-import { useEffect, useState} from 'react'
+import { useEffect, useState } from 'react'
 import { 
   AreaChart, Area, BarChart, Bar, LineChart, Line, XAxis, YAxis, 
   CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell 
 } from 'recharts'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
-  FiArrowUpRight, FiArrowDownRight, FiTrendingUp, FiDollarSign, FiRefreshCw,FiBarChart2, 
+  FiArrowUpRight, FiArrowDownRight, FiTrendingUp, FiDollarSign, FiRefreshCw, FiBarChart2, 
   FiActivity
 } from 'react-icons/fi'
 import { FaBitcoin, FaEthereum } from 'react-icons/fa'
@@ -15,37 +15,34 @@ import { TbCurrencySolana } from 'react-icons/tb'
 import { getUserBalance } from '@/lib/getUserBalance' 
 import { getUserWalletBalances } from '@/lib/getUserWalletBalances'
 
-
-
-
 const CryptoDashboard = () => {
   const [activeTab, setActiveTab] = useState('portfolio')
   const [timeRange, setTimeRange] = useState('7d')
   const [isLoading, setIsLoading] = useState(false)
   const [darkMode, setDarkMode] = useState(true)
   const [balanceData, setBalanceData] = useState<number>(0)
-  const [UsdtBalance, setUsdtBalance] = useState<number>(0)
-  const [ethBalance, setethBalance] = useState<number>(0)
-  const [btcBalance, setbtcBalance] = useState<number>(0)
-  const [bnbBalance, setbnbBalance] = useState<number>(0)
-  const [solBalance, setsolBalance] = useState<number>(0)
-  const [xrpBalance, setxrpBalance] = useState<number>(0)
-
-
-  
-  
-
-
-
-  // Mock data
-  const portfolioData = [
+  const [usdtBalance, setUsdtBalance] = useState<number>(0)
+  const [ethBalance, setEthBalance] = useState<number>(0)
+  const [btcBalance, setBtcBalance] = useState<number>(0)
+  const [bnbBalance, setBnbBalance] = useState<number>(0)
+  const [solBalance, setSolBalance] = useState<number>(0)
+  const [xrpBalance, setXrpBalance] = useState<number>(0)
+  const [priceData, setPriceData] = useState({
+    BTC: 62543.12,
+    ETH: 3421.56,
+    BNB: 586.34,
+    SOL: 142.67,
+    XRP: 0.5423,
+    USDT: 1.00
+  })
+  const [portfolioData, setPortfolioData] = useState([
     { name: 'BTC', value: 12500, change: 2.4, icon: <FaBitcoin className="text-amber-500" /> },
     { name: 'ETH', value: 8500, change: -1.2, icon: <FaEthereum className="text-purple-500" /> },
     { name: 'BNB', value: 3200, change: 0.8, icon: <SiBinance className="text-yellow-500" /> },
     { name: 'SOL', value: 2800, change: 5.3, icon: <TbCurrencySolana className="text-green-500" /> },
     { name: 'XRP', value: 1500, change: -0.5, icon: <SiRipple className="text-blue-500" /> },
-    { name: 'USDT', value: 1500, change: -0.5, icon: <SiRipple className="text-blue-300" /> },
-  ]
+    { name: 'USDT', value: 1500, change: 0, icon: <FiDollarSign className="text-green-300" /> },
+  ])
 
   const priceHistoryData = [
     { name: 'Jan', btc: 4000, eth: 2400, sol: 2400 },
@@ -66,48 +63,62 @@ const CryptoDashboard = () => {
 
   const COLORS = ['#FD4A36', '#8884d8', '#FFBB28', '#00C49F']
 
-
- // Fetch user balance
- const fetchBalance = async () => {
-  setIsLoading(true)
-  try {
-    const result = await getUserBalance()
-    setBalanceData(result.balance)
-    const usdtwalletResponse = await getUserWalletBalances()
-        if (usdtwalletResponse && !usdtwalletResponse.error) {
-          setUsdtBalance(usdtwalletResponse.balances?.USDT)
-        }
-        const ethwalletResponse = await getUserWalletBalances()
-        if (ethwalletResponse && !ethwalletResponse.error) {
-          setethBalance(ethwalletResponse.balances?.ETH)
-        }
-        const btcwalletResponse = await getUserWalletBalances()
-        if (btcwalletResponse && !btcwalletResponse.error) {
-          setbtcBalance(btcwalletResponse.balances?.BTC)
-        }
-        const bnbwalletResponse = await getUserWalletBalances()
-        if (bnbwalletResponse && !bnbwalletResponse.error) {
-          setbnbBalance(bnbwalletResponse.balances?.BNB)
-        }
-        const solwalletResponse = await getUserWalletBalances()
-        if (solwalletResponse && !solwalletResponse.error) {
-          setsolBalance(solwalletResponse.balances?.SOL)
-        }
-        const xrpwalletResponse = await getUserWalletBalances()
-        if (xrpwalletResponse && !xrpwalletResponse.error) {
-          setxrpBalance(xrpwalletResponse.balances?.XRP)
-        }
-  } catch (error) {
-    console.log(error)
-   } finally {
-    setIsLoading(false)
+  // Fetch user balance
+  const fetchBalance = async () => {
+    setIsLoading(true)
+    try {
+      const result = await getUserBalance()
+      setBalanceData(result.balance)
+      
+      const walletResponse = await getUserWalletBalances()
+      if (walletResponse && !walletResponse.error) {
+        setUsdtBalance(walletResponse.balances?.USDT || 0)
+        setEthBalance(walletResponse.balances?.ETH || 0)
+        setBtcBalance(walletResponse.balances?.BTC || 0)
+        setBnbBalance(walletResponse.balances?.BNB || 0)
+        setSolBalance(walletResponse.balances?.SOL || 0)
+        setXrpBalance(walletResponse.balances?.XRP || 0)
+      }
+    } catch (error) {
+      console.error('Error fetching balances:', error)
+    } finally {
+      setIsLoading(false)
+    }
   }
-}
 
-useEffect(() => {
-  fetchBalance()
-}, [])
+  // Simulate price changes
+  const simulatePriceChanges = () => {
+    setPriceData(prev => ({
+      BTC: prev.BTC * (1 + (Math.random() * 0.02 - 0.01)),
+      ETH: prev.ETH * (1 + (Math.random() * 0.02 - 0.01)),
+      BNB: prev.BNB * (1 + (Math.random() * 0.02 - 0.01)),
+      SOL: prev.SOL * (1 + (Math.random() * 0.02 - 0.01)),
+      XRP: prev.XRP * (1 + (Math.random() * 0.02 - 0.01)),
+      USDT: 1.00
+    }))
 
+    setPortfolioData(prev => prev.map(item => ({
+      ...item,
+      change: item.name === 'USDT' ? 0 : Number((item.change + (Math.random() * 0.4 - 0.2)).toFixed(2)),
+      value: item.name === 'BTC' ? btcBalance * priceData.BTC :
+             item.name === 'ETH' ? ethBalance * priceData.ETH :
+             item.name === 'BNB' ? bnbBalance * priceData.BNB :
+             item.name === 'SOL' ? solBalance * priceData.SOL :
+             item.name === 'XRP' ? xrpBalance * priceData.XRP :
+             usdtBalance * priceData.USDT,
+    })))
+  }
+
+  useEffect(() => {
+    fetchBalance()
+    
+    // Set up interval for price changes
+    const interval = setInterval(() => {
+      simulatePriceChanges()
+    }, 3000) // Change every 3 seconds
+
+    return () => clearInterval(interval)
+  }, [])
 
   // Calculate totals
   const totalBalance = portfolioData.reduce((sum, item) => sum + item.value, 0)
@@ -115,6 +126,7 @@ useEffect(() => {
 
   const refreshData = () => {
     setIsLoading(true)
+    fetchBalance()
     setTimeout(() => setIsLoading(false), 1000)
   }
 
@@ -128,12 +140,40 @@ useEffect(() => {
     }).format(value)
   }
 
-  
+  // Format crypto amount
+  const formatCrypto = (value: number) => {
+    return value.toFixed(8)
+  }
 
+  // Get asset price
+  const getAssetPrice = (asset: string) => {
+    switch (asset) {
+      case 'BTC': return priceData.BTC
+      case 'ETH': return priceData.ETH
+      case 'BNB': return priceData.BNB
+      case 'SOL': return priceData.SOL
+      case 'XRP': return priceData.XRP
+      case 'USDT': return priceData.USDT
+      default: return 0
+    }
+  }
+
+  // Get asset balance
+  const getAssetBalance = (asset: string) => {
+    switch (asset) {
+      case 'BTC': return btcBalance
+      case 'ETH': return ethBalance
+      case 'BNB': return bnbBalance
+      case 'SOL': return solBalance
+      case 'XRP': return xrpBalance
+      case 'USDT': return usdtBalance
+      default: return 0
+    }
+  }
 
   return (
-    <div className={` overflow-hidden ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
-      <div className="px-4 py-8">
+    <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
+      <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
@@ -169,16 +209,22 @@ useEffect(() => {
             <div className="flex justify-between items-start">
               <div>
                 <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total Balance</p>
-                <h2 className="text-2xl font-bold mt-1">$ {isLoading ? '...' : balanceData.toFixed(2)}</h2>
+                <h2 className="text-2xl font-bold mt-1">
+                 $ {isLoading ? '...' : balanceData.toFixed(2)}
+                </h2>
               </div>
               <div className={`p-3 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
                 <FiDollarSign className="text-[#FD4A36]" size={20} />
               </div>
             </div>
             <div className="mt-4 flex items-center">
-              <FiTrendingUp className="text-green-500 mr-2" />
+              {totalProfit >= 0 ? (
+                <FiTrendingUp className="text-green-500 mr-2" />
+              ) : (
+                <FiTrendingUp className="text-red-500 mr-2 transform rotate-180" />
+              )}
               <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                +{formatCurrency(totalProfit)} ({(totalProfit/totalBalance*100).toFixed(2)}%) last 24h
+                {totalProfit >= 0 ? '+' : ''}{formatCurrency(totalProfit)} ({totalBalance > 0 ? (totalProfit / totalBalance * 100).toFixed(2) : '0.00'}%) last 24h
               </span>
             </div>
           </motion.div>
@@ -191,9 +237,11 @@ useEffect(() => {
             <div className="flex justify-between items-start">
               <div>
                 <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>BTC Balance</p>
-                <h2 className="text-2xl font-bold mt-1">{isLoading ? '...' : btcBalance.toFixed(8)}</h2>
+                <h2 className="text-2xl font-bold mt-1">
+                  {isLoading ? '...' : formatCrypto(btcBalance)}
+                </h2>
                 <p className={`text-sm mt-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                  ≈ {formatCurrency(0.42 * 62543.12)}
+                  ≈ {formatCurrency(btcBalance * priceData.BTC)}
                 </p>
               </div>
               <div className={`p-3 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
@@ -201,9 +249,13 @@ useEffect(() => {
               </div>
             </div>
             <div className="mt-4 flex items-center">
-              <FiTrendingUp className="text-green-500 mr-2" />
+              {portfolioData.find(a => a.name === 'BTC')?.change !== undefined && portfolioData.find(a => a.name === 'BTC')!.change >= 0 ? (
+                <FiTrendingUp className="text-green-500 mr-2" />
+              ) : (
+                <FiTrendingUp className="text-red-500 mr-2 transform rotate-180" />
+              )}
               <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                +2.4% last 24h
+                {portfolioData.find(a => a.name === 'BTC')?.change.toFixed(2)}% last 24h
               </span>
             </div>
           </motion.div>
@@ -216,9 +268,11 @@ useEffect(() => {
             <div className="flex justify-between items-start">
               <div>
                 <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>USDT Balance</p>
-                <h2 className="text-2xl font-bold mt-1">{isLoading ? '...' : UsdtBalance.toFixed(8)}</h2>
+                <h2 className="text-2xl font-bold mt-1">
+                  {isLoading ? '...' : formatCrypto(usdtBalance)}
+                </h2>
                 <p className={`text-sm mt-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                  ≈ {formatCurrency(12450.50)}
+                  ≈ {formatCurrency(usdtBalance * priceData.USDT)}
                 </p>
               </div>
               <div className={`p-3 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
@@ -434,54 +488,26 @@ useEffect(() => {
                                     {asset.name === 'BTC' ? 'Bitcoin' : 
                                      asset.name === 'ETH' ? 'Ethereum' : 
                                      asset.name === 'BNB' ? 'Binance Coin' : 
-                                     asset.name === 'SOL' ? 'Solana' : 'Ripple'}
+                                     asset.name === 'SOL' ? 'Solana' : 
+                                     asset.name === 'XRP' ? 'Ripple' : 'Tether'}
                                   </p>
                                 </div>
                               </div>
                             </td>
                             <td className="text-right py-3 px-4">
-                            <p className="font-medium">
-  {
-    asset.name === 'USDT'
-      ? isLoading
-        ? '...'
-        : UsdtBalance.toFixed(8)
-      : asset.name === 'ETH'
-        ? isLoading
-          ? '...'
-          : ethBalance.toFixed(8)
-        : asset.name === 'BTC'
-          ? isLoading
-            ? '...'
-            : btcBalance.toFixed(8)
-          : asset.name === 'BNB'
-            ? isLoading
-              ? '...'
-              : bnbBalance.toFixed(8)
-              :asset.name === "XRP"
-              ? isLoading
-                ? '...'
-                : xrpBalance.toFixed(8)
-            : asset.name === 'SOL'
-              ? isLoading
-                ? '...'
-                : solBalance.toFixed(8)
-              : null
-  } {asset.name}
-</p>
-
-
-                            </td>
-                            <td className="text-right py-3 px-4">
                               <p className="font-medium">
-                                {asset.name === 'BTC' ? formatCurrency(62543.12) : 
-                                  asset.name === 'ETH' ? formatCurrency(3421.56) : 
-                                  asset.name === 'BNB' ? formatCurrency(586.34) : 
-                                  asset.name === 'SOL' ? formatCurrency(142.67) : formatCurrency(0.5423)}
+                                {isLoading ? '...' : formatCrypto(getAssetBalance(asset.name))} {asset.name}
                               </p>
                             </td>
                             <td className="text-right py-3 px-4">
-                              <p className="font-medium">{formatCurrency(asset.value)}</p>
+                              <p className="font-medium">
+                                {formatCurrency(getAssetPrice(asset.name))}
+                              </p>
+                            </td>
+                            <td className="text-right py-3 px-4">
+                              <p className="font-medium">
+                                {formatCurrency(asset.value)}
+                              </p>
                             </td>
                             <td className="text-right py-3 px-4">
                               <div className={`flex items-center justify-end ${asset.change >= 0 ? 'text-green-500' : 'text-red-500'}`}>
@@ -490,7 +516,7 @@ useEffect(() => {
                                 ) : (
                                   <FiArrowDownRight className="mr-1" />
                                 )}
-                                <span>{asset.change >= 0 ? '+' : ''}{asset.change}%</span>
+                                <span>{asset.change >= 0 ? '+' : ''}{asset.change.toFixed(2)}%</span>
                               </div>
                             </td>
                           </tr>
@@ -573,16 +599,13 @@ useEffect(() => {
                             <div>
                               <p className="font-medium">{crypto.name}</p>
                               <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                                {crypto.name === 'BTC' ? formatCurrency(62543.12) : 
-                                 crypto.name === 'ETH' ? formatCurrency(3421.56) : 
-                                 crypto.name === 'BNB' ? formatCurrency(586.34) : 
-                                 crypto.name === 'SOL' ? formatCurrency(142.67) : formatCurrency(0.5423)}
+                                {formatCurrency(getAssetPrice(crypto.name))}
                               </p>
                             </div>
                           </div>
                           <div className="text-green-500 flex items-center">
                             <FiArrowUpRight className="mr-1" />
-                            <span>+{crypto.change}%</span>
+                            <span>+{crypto.change.toFixed(2)}%</span>
                           </div>
                         </div>
                       ))}
@@ -608,16 +631,13 @@ useEffect(() => {
                             <div>
                               <p className="font-medium">{crypto.name}</p>
                               <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                                {crypto.name === 'BTC' ? formatCurrency(62543.12) : 
-                                 crypto.name === 'ETH' ? formatCurrency(3421.56) : 
-                                 crypto.name === 'BNB' ? formatCurrency(586.34) : 
-                                 crypto.name === 'SOL' ? formatCurrency(142.67) : formatCurrency(0.5423)}
+                                {formatCurrency(getAssetPrice(crypto.name))}
                               </p>
                             </div>
                           </div>
                           <div className="text-red-500 flex items-center">
                             <FiArrowDownRight className="mr-1" />
-                            <span>{crypto.change}%</span>
+                            <span>{crypto.change.toFixed(2)}%</span>
                           </div>
                         </div>
                       ))}
@@ -740,7 +760,7 @@ useEffect(() => {
                           ) : (
                             <FiArrowDownRight className="mr-1" />
                           )}
-                          <span>{item.change >= 0 ? '+' : ''}{item.change}%</span>
+                          <span>{item.change >= 0 ? '+' : ''}{item.change.toFixed(1)}%</span>
                         </div>
                       </div>
                     ))}

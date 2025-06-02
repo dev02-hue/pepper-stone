@@ -1,7 +1,7 @@
 'use client';
 
-import { approveCryptoDeposit, rejectCryptoDeposit } from '@/lib/depositActions';
-import { getTransactions } from '@/lib/get-transactions';
+ import { getTransactions } from '@/lib/get-transactions';
+import { approveCryptoWithdrawal, rejectCryptoWithdrawal } from '@/lib/withdrawalaction';
 import { useEffect, useState } from 'react';
 
 interface Transaction {
@@ -12,9 +12,10 @@ interface Transaction {
   created_at: string;
   status: 'pending' | 'completed' | 'failed' | 'rejected';
   crypto_type?: string;
+
 }
 
-export default function ApproveDepositTable() {
+export default function ApproveWithdrwal() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +45,7 @@ export default function ApproveDepositTable() {
   const handleApprove = async (transactionId: string) => {
     try {
       setProcessing(prev => ({ ...prev, [transactionId]: true }));
-      const result = await approveCryptoDeposit(transactionId);
+      const result = await approveCryptoWithdrawal(transactionId);
       if (result?.error) {
         setError(result.error);
       } else if (result?.success) {
@@ -63,7 +64,7 @@ export default function ApproveDepositTable() {
   const handleReject = async (transactionId: string) => {
     try {
       setProcessing(prev => ({ ...prev, [transactionId]: true }));
-      const { success, error: rejectionError } = await rejectCryptoDeposit(transactionId);
+      const { success, error: rejectionError } = await rejectCryptoWithdrawal(transactionId);
       if (rejectionError) {
         setError(rejectionError);
       } else if (success) {
@@ -133,7 +134,7 @@ export default function ApproveDepositTable() {
                 </span>
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {transaction.status === 'pending' && transaction.type === 'deposit' && (
+                {transaction.status === 'pending' && transaction.type === 'withdrawal' && (
                   <div className="flex space-x-2">
                     <button
                       onClick={() => handleApprove(transaction.id)}
@@ -165,3 +166,11 @@ export default function ApproveDepositTable() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
