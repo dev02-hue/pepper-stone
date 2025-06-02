@@ -1,8 +1,9 @@
+import CryptoTransactionsTable from '@/app/components/user/CryptoTransactionsTable'
 import React from 'react'
 
 const page = () => {
   return (
-    <div>history</div>
+    <div><CryptoTransactionsTable /></div>
   )
 }
 
