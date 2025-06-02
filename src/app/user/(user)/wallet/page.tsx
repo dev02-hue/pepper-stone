@@ -1,9 +1,10 @@
+import WalletBalances from '@/app/components/user/WalletBalances';
 import React from 'react'
 
 const page = () => {
   return (
-    <div>wallet</div>
-  )
+    <WalletBalances />
+   )
 }
 
 export default page;
