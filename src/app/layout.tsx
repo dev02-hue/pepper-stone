@@ -1,9 +1,8 @@
 import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
-// import ReduxProvider from "./components/utils/ReduxProvider"
-import RootStructure from "./components/layout/RootStructure"
-import TelegramFloatButton from "./components/home/TelegramFloatButton"
+ import RootStructure from "./components/layout/RootStructure"
+ import TelegramFloatButtonWrapper from "./components/utils/TelegramFloatButtonWrapper"
  
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,7 +30,7 @@ export default function RootLayout({
         
           <RootStructure>
             {children}
-            <TelegramFloatButton />  
+            <TelegramFloatButtonWrapper /> 
           </RootStructure>
          
       </body>

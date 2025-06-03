@@ -1,4 +1,5 @@
 // lib/getUserProfile.ts
+"use server"
 
 import { cookies } from 'next/headers';
 import { supabase } from './supabaseClient';
