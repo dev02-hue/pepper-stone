@@ -117,38 +117,38 @@ export default function WalletBalances() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-4 sm:p-6">
+    <div className="max-w-6xl mx-auto px-3 py-4 sm:p-6">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden"
       >
         {/* Header */}
-        <div className="p-6 pb-0 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4 sm:mb-0">
+        <div className="p-4 sm:p-6 pb-0 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">
             Crypto Wallet Dashboard
           </h2>
           
-          <div className="flex items-center space-x-3">
+          <div className="flex flex-col xs:flex-row items-start xs:items-center gap-3">
             <button
               onClick={refreshAll}
               disabled={isRefreshing}
-              className="flex items-center px-3 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
+              className="flex items-center px-3 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors text-sm sm:text-base"
             >
               <FiRefreshCw className={`mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
               Refresh
             </button>
             
-            <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+            <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1 w-full xs:w-auto">
               <button
                 onClick={() => setActiveTab('addresses')}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'addresses' ? 'bg-white dark:bg-gray-600 shadow-sm text-gray-800 dark:text-white' : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white'}`}
+                className={`px-3 py-1 sm:px-4 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${activeTab === 'addresses' ? 'bg-white dark:bg-gray-600 shadow-sm text-gray-800 dark:text-white' : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white'}`}
               >
                 Addresses
               </button>
               <button
                 onClick={() => setActiveTab('balances')}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'balances' ? 'bg-white dark:bg-gray-600 shadow-sm text-gray-800 dark:text-white' : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white'}`}
+                className={`px-3 py-1 sm:px-4 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${activeTab === 'balances' ? 'bg-white dark:bg-gray-600 shadow-sm text-gray-800 dark:text-white' : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white'}`}
               >
                 Balances
               </button>
@@ -163,7 +163,7 @@ export default function WalletBalances() {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              className="mx-6 mt-4 p-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-100 rounded-lg"
+              className="mx-4 sm:mx-6 mt-4 p-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-100 rounded-lg text-sm"
             >
               {walletError}
             </motion.div>
@@ -174,7 +174,7 @@ export default function WalletBalances() {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              className="mx-6 mt-4 p-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-100 rounded-lg"
+              className="mx-4 sm:mx-6 mt-4 p-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-100 rounded-lg text-sm"
             >
               {balanceError}
             </motion.div>
@@ -183,7 +183,7 @@ export default function WalletBalances() {
 
         {/* Loading state */}
         {(isLoadingWallets && activeTab === 'addresses') || (isLoadingBalances && activeTab === 'balances') ? (
-          <div className="flex justify-center py-16">
+          <div className="flex justify-center py-12 sm:py-16">
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
@@ -191,7 +191,7 @@ export default function WalletBalances() {
             />
           </div>
         ) : (
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             {/* Addresses Tab */}
             {activeTab === 'addresses' && (
               <motion.div
@@ -200,14 +200,16 @@ export default function WalletBalances() {
                 transition={{ duration: 0.3 }}
                 className="space-y-4"
               >
-                <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4">Wallet Addresses</h3>
+                <h3 className="text-base sm:text-lg font-semibold text-gray-700 dark:text-gray-300 mb-3 sm:mb-4">
+                  Wallet Addresses
+                </h3>
                 
                 {CRYPTO_OPTIONS.filter(option => getWalletAddress(option.value)).length === 0 ? (
-                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                  <div className="text-center py-6 sm:py-8 text-gray-500 dark:text-gray-400 text-sm sm:text-base">
                     No wallet addresses found
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                     {CRYPTO_OPTIONS.map((option) => {
                       const address = getWalletAddress(option.value);
                       if (!address) return null;
@@ -217,28 +219,30 @@ export default function WalletBalances() {
                           key={option.value}
                           layout
                           whileHover={{ scale: 1.01 }}
-                          className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg shadow-sm border border-gray-200 dark:border-gray-600"
+                          className="p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-lg shadow-sm border border-gray-200 dark:border-gray-600"
                         >
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                              <div className="text-2xl">
+                            <div className="flex items-center space-x-2 sm:space-x-3">
+                              <div className="text-xl sm:text-2xl">
                                 {cryptoIcons[option.value]}
                               </div>
-                              <div>
-                                <h3 className="font-medium text-gray-800 dark:text-white">{option.label}</h3>
+                              <div className="overflow-hidden">
+                                <h3 className="font-medium text-gray-800 dark:text-white text-sm sm:text-base">
+                                  {option.label}
+                                </h3>
                                 <div className="flex items-center mt-1">
-                                  <span className="text-sm text-gray-600 dark:text-gray-300 font-mono truncate max-w-[180px] md:max-w-[220px]">
+                                  <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 font-mono truncate max-w-[120px] xs:max-w-[160px] sm:max-w-[180px] md:max-w-[220px]">
                                     {address}
                                   </span>
                                   <button 
                                     onClick={() => copyToClipboard(address)}
-                                    className="ml-2 text-gray-500 hover:text-blue-500 transition-colors"
+                                    className="ml-1 sm:ml-2 text-gray-500 hover:text-blue-500 transition-colors"
                                     aria-label="Copy address"
                                   >
                                     {copiedAddress === address ? (
-                                      <FiCheck className="text-green-500" />
+                                      <FiCheck className="text-green-500 text-sm sm:text-base" />
                                     ) : (
-                                      <FiCopy />
+                                      <FiCopy className="text-sm sm:text-base" />
                                     )}
                                   </button>
                                 </div>
@@ -261,14 +265,16 @@ export default function WalletBalances() {
                 transition={{ duration: 0.3 }}
                 className="space-y-4"
               >
-                <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4">Wallet Balances</h3>
+                <h3 className="text-base sm:text-lg font-semibold text-gray-700 dark:text-gray-300 mb-3 sm:mb-4">
+                  Wallet Balances
+                </h3>
                 
                 {!balances || Object.keys(balances).length === 0 ? (
-                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                  <div className="text-center py-6 sm:py-8 text-gray-500 dark:text-gray-400 text-sm sm:text-base">
                     No wallet balances found
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                     {Object.entries(balances).map(([symbol, balance]) => (
                       <motion.div
                         key={symbol}
@@ -276,15 +282,17 @@ export default function WalletBalances() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3 }}
                         whileHover={{ scale: 1.03 }}
-                        className="bg-white dark:bg-gray-700 rounded-lg shadow-sm p-4 border border-gray-200 dark:border-gray-600"
+                        className="bg-white dark:bg-gray-700 rounded-lg shadow-sm p-3 sm:p-4 border border-gray-200 dark:border-gray-600"
                       >
-                        <div className="flex items-center space-x-3">
-                          <div className="p-2 rounded-full bg-gray-100 dark:bg-gray-600">
+                        <div className="flex items-center space-x-2 sm:space-x-3">
+                          <div className="p-1 sm:p-2 rounded-full bg-gray-100 dark:bg-gray-600">
                             <CryptoIcon symbol={symbol} />
                           </div>
-                          <div>
-                            <h3 className="font-semibold text-gray-800 dark:text-white">{symbol}</h3>
-                            <p className="text-gray-600 dark:text-gray-300">
+                          <div className="overflow-hidden">
+                            <h3 className="font-semibold text-gray-800 dark:text-white text-sm sm:text-base">
+                              {symbol}
+                            </h3>
+                            <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm">
                               {balance.toFixed(8)}
                             </p>
                           </div>
@@ -301,8 +309,3 @@ export default function WalletBalances() {
     </div>
   );
 }
-
-
-
-
-

@@ -233,3 +233,81 @@ export async function signIn({ email, phone, password }: SignInInput) {
       return { error: 'An unexpected error occurred' }
     }
   }
+
+
+  // Add this to your auth.ts file (server-side)
+
+export async function changeEmail({
+  userId,
+  newEmail,
+}: {
+  userId: string
+  newEmail: string
+}) {
+  // 1. Validate input
+  if (!newEmail || !newEmail.includes('@')) {
+    return { error: 'Valid email is required' }
+  }
+
+  try {
+    // 2. Get the current email from tradingprofile
+    const { data: profile, error: profileError } = await supabase
+      .from('tradingprofile')
+      .select('email, auth_email')
+      .eq('id', userId)
+      .single()
+
+    if (profileError || !profile) {
+      return { error: 'User profile not found' }
+    }
+
+    const currentEmail = profile.email
+
+    // 3. Check if the new email is different
+    if (currentEmail === newEmail) {
+      return { error: 'New email must be different from current email' }
+    }
+
+    // 4. Check if email is already in use by another user
+    const { data: existingUser, error: emailCheckError } = await supabase
+      .from('tradingprofile')
+      .select('id')
+      .eq('email', newEmail)
+      .neq('id', userId)
+      .single()
+
+    if (emailCheckError && emailCheckError.code !== 'PGRST116') { // Ignore "no rows found" error
+      return { error: 'Error checking email availability' }
+    }
+
+    if (existingUser) {
+      return { error: 'Email is already in use by another account' }
+    }
+
+    // 5. Update email in auth.users table (if using email auth)
+    if (profile.auth_email && profile.auth_email.includes('@')) {
+      const { error: authError } = await supabase.auth.admin.updateUserById(userId, {
+        email: newEmail,
+      })
+
+      if (authError) {
+        return { error: 'Failed to update authentication email' }
+      }
+    }
+
+    // 6. Update email in tradingprofile
+    const { error: updateError } = await supabase
+      .from('tradingprofile')
+      .update({ email: newEmail, updated_at: new Date().toISOString() })
+      .eq('id', userId)
+
+    if (updateError) {
+      return { error: 'Failed to update profile email' }
+    }
+
+    return { success: true, message: 'Email updated successfully' }
+  } catch (err) {
+    console.error('Error changing email:', err)
+    return { error: 'An unexpected error occurred' }
+  }
+}
