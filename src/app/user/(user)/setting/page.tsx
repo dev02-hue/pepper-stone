@@ -7,7 +7,7 @@ import {
   FaWallet, 
   FaKey, 
   FaEnvelope, 
-  FaSignOutAlt,
+ 
   FaChevronRight,
   FaUserShield,
   FaBell,
@@ -15,20 +15,14 @@ import {
   FaPalette
 } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
-import { signOut } from 'next-auth/react';
-
+import SignOutButton from '@/app/components/user/SignOutButton';
+ 
 const SettingsPage = () => {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'account' | 'security' | 'preferences'>('account');
-  const [isSigningOut, setIsSigningOut] = useState(false);
 
   const handleNavigation = (path: string) => {
     router.push(path);
-  };
-
-  const handleSignOut = async () => {
-    setIsSigningOut(true);
-    await signOut({ callbackUrl: '/login' });
   };
 
   const settingsOptions = {
@@ -50,7 +44,7 @@ const SettingsPage = () => {
       {
         title: "Change Password",
         icon: <FaKey className="text-green-500" />,
-        action: () => handleNavigation('/change-password'),
+        action: () => handleNavigation('/user/change-password'),
         description: "Update your account password"
       },
       {
@@ -154,16 +148,9 @@ const SettingsPage = () => {
         </div>
 
         {/* Sign Out Button */}
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={handleSignOut}
-          disabled={isSigningOut}
-          className="w-full mt-8 flex items-center justify-center space-x-2 py-3 px-4 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
-        >
-          <FaSignOutAlt />
-          <span>{isSigningOut ? 'Signing Out...' : 'Sign Out'}</span>
-        </motion.button>
+        <div className="mt-8">
+          <SignOutButton />
+        </div>
 
         {/* Coming Soon Section */}
         <div className="mt-12">

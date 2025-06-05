@@ -1,97 +1,125 @@
 'use client'
 
 import { useState } from 'react'
-import { supabase } from '@/lib/supabaseClient'
+import { easyChangeEmail } from '@/lib/auth'
+import { useRouter } from 'next/navigation'
 
-export default function ChangeEmailForm() {
-  const [email, setEmail] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState('')
-  const [error, setError] = useState('')
+export default function EasyEmailChangeForm({ currentEmail }: { currentEmail: string }) {
+  const [formData, setFormData] = useState({
+    newEmail: '',
+    currentPassword: ''
+  })
+  const [isLoading, setIsLoading] = useState(false)
+  const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null)
+  const router = useRouter()
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
-    setMessage('')
-    setError('')
-    console.log('🔧 Submitting email update:', email)
+    setIsLoading(true)
+    setMessage(null)
 
     try {
-      // Get current user info
-      const userResult = await supabase.auth.getUser()
-      const userId = userResult.data?.user?.id
-
-      console.log('👤 Supabase user:', userResult.data?.user)
-
-      if (!userId) {
-        setError('User not found in session')
-        console.error('⛔ User not found in session')
-        setLoading(false)
-        return
-      }
-
-      // 1. Update Auth email
-      const { error: updateError } = await supabase.auth.updateUser({
-        email,
+      const result = await easyChangeEmail({
+        newEmail: formData.newEmail,
+        currentPassword: formData.currentPassword
       })
 
-      if (updateError) {
-        console.error('⛔ Auth email update failed:', updateError.message)
-        setError('Failed to update email: ' + updateError.message)
-        setLoading(false)
-        return
+      if (result.error) {
+        setMessage({ text: result.error, type: 'error' })
+      } else {
+        setMessage({ 
+          text: result.message || 'Email changed successfully! Please check your new email for verification.', 
+          type: 'success' 
+        })
+        // Clear form on success
+        setFormData({
+          newEmail: '',
+          currentPassword: ''
+        })
+        // Refresh auth state
+        router.refresh()
       }
-      console.log('✅ Email updated in auth successfully')
-
-      // 2. Update profile email
-      const { error: profileError } = await supabase
-        .from('tradingprofile')
-        .update({ email })
-        .eq('id', userId)
-
-      if (profileError) {
-        console.error('⚠️ Email updated in auth but failed in profile:', profileError.message)
-        setError('Failed to update email in profile: ' + profileError.message)
-        setLoading(false)
-        return
-      }
-
-      console.log('✅ Email updated in tradingprofile table')
-      setMessage('Email updated successfully')
     } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : 'Unknown error occurred'
-      console.error('⛔ Unexpected error:', errorMessage)
-      setError('Unexpected error: ' + errorMessage)
+      console.error('Email change error:', err)
+      setMessage({ 
+        text: 'An unexpected error occurred. Please try again.', 
+        type: 'error' 
+      })
+    } finally {
+      setIsLoading(false)
     }
-
-    setLoading(false)
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="max-w-md mx-auto p-4 bg-white rounded-xl shadow-md mt-10"
-    >
-      <h2 className="text-xl font-bold mb-4 text-center">Change Email</h2>
-      <input
-        type="email"
-        placeholder="Enter new email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        required
-      />
-      <button
-        type="submit"
-        disabled={loading}
-        className="mt-4 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
-      >
-        {loading ? 'Updating...' : 'Update Email'}
-      </button>
+    <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
+      <h2 className="text-2xl font-bold mb-4">Change Email Address</h2>
+      
+      <div className="mb-4 p-3 bg-blue-50 text-blue-800 rounded">
+        <p className="font-medium">Current Email:</p>
+        <p>{currentEmail}</p>
+      </div>
 
-      {message && <p className="text-green-600 mt-3 text-center">{message}</p>}
-      {error && <p className="text-red-600 mt-3 text-center">{error}</p>}
-    </form>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label htmlFor="newEmail" className="block text-sm font-medium text-gray-700 mb-1">
+            New Email Address
+          </label>
+          <input
+            type="email"
+            id="newEmail"
+            name="newEmail"
+            value={formData.newEmail}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+            autoComplete="email"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-1">
+            Current Password
+          </label>
+          <input
+            type="password"
+            id="currentPassword"
+            name="currentPassword"
+            value={formData.currentPassword}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+            autoComplete="current-password"
+          />
+        </div>
+
+        {message && (
+          <div className={`p-3 rounded-md ${message.type === 'success' 
+            ? 'bg-green-50 text-green-800' 
+            : 'bg-red-50 text-red-800'}`}>
+            {message.text}
+          </div>
+        )}
+
+        <button
+          type="submit"
+          disabled={isLoading}
+          className={`w-full py-2 px-4 rounded-md text-white font-medium ${
+            isLoading 
+              ? 'bg-blue-400 cursor-not-allowed' 
+              : 'bg-blue-600 hover:bg-blue-700'
+          } transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
+        >
+          {isLoading ? 'Updating...' : 'Change Email'}
+        </button>
+      </form>
+    </div>
   )
 }

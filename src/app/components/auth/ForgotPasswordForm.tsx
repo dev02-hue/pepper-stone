@@ -1,173 +1,170 @@
 'use client'
-import { motion } from 'framer-motion'
-import { FaPaperPlane, FaArrowLeft, FaCheckCircle } from 'react-icons/fa'
-import { useState } from 'react'
-import Link from 'next/link'
-import axios from 'axios'
 
-const ForgotPasswordForm = () => {
+import { sendPasswordResetOTP } from '@/lib/auth'
+import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { FiMail, FiPhone, FiArrowRight, FiLoader } from 'react-icons/fi'
+import { FaExclamationCircle, FaCheckCircle } from 'react-icons/fa'
+
+interface ForgotPasswordFormProps {
+  onSuccess: (email?: string, phone?: string) => void
+}
+
+export default function ForgotPasswordForm({ onSuccess }: ForgotPasswordFormProps) {
   const [email, setEmail] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [isSubmitted, setIsSubmitted] = useState(false)
-  const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null)
+  const [phone, setPhone] = useState('')
+  const [message, setMessage] = useState<{text: string, type: 'success' | 'error'} | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showPhone, setShowPhone] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
+    setIsSubmitting(true)
     setMessage(null)
-    
+
     try {
-      // Replace with your actual API endpoint
-      await axios.post('https://pepper-be.onrender.com/auth/forgot-password', { email })
-      setIsSubmitted(true)
-      setMessage({ text: 'Password reset link sent to your email!', type: 'success' })
-    } catch (err) {
-        console.error('[Forgot Password] Error:', err)
-      setMessage({ 
-        text: 'Error sending reset link. Please try again.', 
-        type: 'error' 
+      const result = await sendPasswordResetOTP({
+        email: showPhone ? undefined : email,
+        phone: showPhone ? phone : undefined
       })
+
+      if (result.error) {
+        setMessage({ text: result.error, type: 'error' })
+      } else {
+        setMessage({ 
+          text: result.message || 'Reset code sent successfully', 
+          type: 'success' 
+        })
+        onSuccess(showPhone ? undefined : email, showPhone ? phone : undefined)
+      }
+    } catch (err) {
+      console.log(err)
+      setMessage({ text: 'An unexpected error occurred', type: 'error' })
     } finally {
-      setIsLoading(false)
+      setIsSubmitting(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center  p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md bg-white rounded-lg shadow-lg overflow-hidden"
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="max-w-md mx-auto p-8 bg-white rounded-xl shadow-lg border border-gray-100"
+    >
+      <motion.h2 
+        className="text-3xl font-bold mb-8 text-center text-black"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.1 }}
       >
-        <div className="p-8">
-          <Link href="/login" className="flex items-center text-[#FD4A36] mb-4">
-            <FaArrowLeft className="mr-2" />
-            Back to Login
-          </Link>
-
-          <motion.h2 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="text-2xl font-bold text-center text-gray-800 mb-2"
+        Reset Password
+      </motion.h2>
+      
+      <AnimatePresence>
+        {message && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className={`mb-6 p-4 rounded-lg flex items-start ${message.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}
           >
-            Forgot Password?
-          </motion.h2>
-          
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="text-gray-600 text-center mb-6"
-          >
-            {isSubmitted 
-              ? "Check your email for the reset link" 
-              : "Enter your email to receive a password reset link"}
-          </motion.p>
+            {message.type === 'success' ? (
+              <FaCheckCircle className="mt-0.5 mr-3 flex-shrink-0" />
+            ) : (
+              <FaExclamationCircle className="mt-0.5 mr-3 flex-shrink-0" />
+            )}
+            <span>{message.text}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-          {/* Message Display */}
-          {message && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className={`mb-4 p-3 rounded-md text-sm ${
-                message.type === 'success' 
-                  ? 'bg-green-100 text-green-700' 
-                  : 'bg-red-100 text-red-700'
-              }`}
-            >
-              {message.type === 'success' && (
-                <FaCheckCircle className="inline mr-2" />
-              )}
-              {message.text}
-            </motion.div>
-          )}
-
-          {!isSubmitted ? (
-            <form onSubmit={handleSubmit}>
-              <motion.div
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4 }}
-                className="mb-6"
-              >
-                <label htmlFor="email" className="block text-gray-700 text-sm font-medium mb-2">
-                  Email Address
-                </label>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <motion.div
+          key={showPhone ? 'phone' : 'email'}
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          {!showPhone ? (
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                Email Address
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FiMail className="text-gray-400" />
+                </div>
                 <input
                   id="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FD4A36]"
+                  className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   required
+                  placeholder="your@email.com"
                 />
-              </motion.div>
-              
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                type="submit"
-                disabled={isLoading}
-                className={`w-full flex items-center justify-center py-2 px-4 rounded-md text-white font-medium ${
-                  isLoading ? 'bg-gray-400' : 'bg-[#FD4A36] hover:bg-[#e0412e]'
-                }`}
-              >
-                {isLoading ? (
-                  'Sending...'
-                ) : (
-                  <>
-                    Send Reset Link <FaPaperPlane className="ml-2" />
-                  </>
-                )}
-              </motion.button>
-            </form>
+              </div>
+            </div>
           ) : (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="text-center"
-            >
-              <motion.div
-                animate={{ 
-                  scale: [1, 1.1, 1],
-                  rotate: [0, 5, -5, 0]
-                }}
-                transition={{ duration: 0.5 }}
-                className="text-5xl text-[#FD4A36] mb-4"
-              >
-                ✉️
-              </motion.div>
-              <p className="text-gray-600 mb-6">
-                We&apos;ve sent instructions to <span className="font-semibold">{email}</span>. 
-                Please check your inbox and follow the link to reset your password.
-              </p>
-              <button
-                onClick={() => {
-                  setIsSubmitted(false)
-                  setMessage(null)
-                }}
-                className="text-[#FD4A36] hover:underline"
-              >
-                Resend email
-              </button>
-            </motion.div>
+            <div>
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+                Phone Number
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FiPhone className="text-gray-400" />
+                </div>
+                <input
+                  id="phone"
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  required
+                  placeholder="+1 (123) 456-7890"
+                />
+              </div>
+            </div>
           )}
+        </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            className="mt-6 text-center text-sm text-gray-500"
-          >
-            Need help? <Link href="/contact" className="text-[#FD4A36] hover:underline">Contact support</Link>
-          </motion.div>
-        </div>
-      </motion.div>
-    </div>
+        <motion.button
+          type="button"
+          onClick={() => setShowPhone(!showPhone)}
+          className="text-sm text-orange-600 hover:text-orange-800 flex items-center"
+          whileHover={{ x: 2 }}
+        >
+          {showPhone ? (
+            <>
+              <FiMail className="mr-1" /> Use email instead
+            </>
+          ) : (
+            <>
+              <FiPhone className="mr-1" /> Use phone instead
+            </>
+          )}
+        </motion.button>
+
+        <motion.button
+          type="submit"
+          disabled={isSubmitting}
+          className={`w-full py-3 px-4 rounded-lg text-white flex items-center justify-center ${isSubmitting ? 'bg-orange-400' : 'bg-orange-600 hover:bg-orange-700'} focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2`}
+          whileHover={!isSubmitting ? { scale: 1.02 } : {}}
+          whileTap={!isSubmitting ? { scale: 0.98 } : {}}
+        >
+          {isSubmitting ? (
+            <>
+              <FiLoader className="animate-spin mr-2" />
+              Sending...
+            </>
+          ) : (
+            <>
+              Send Reset Code <FiArrowRight className="ml-2" />
+            </>
+          )}
+        </motion.button>
+      </form>
+    </motion.div>
   )
 }
-
-export default ForgotPasswordForm
