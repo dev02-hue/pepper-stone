@@ -1,13 +1,37 @@
 'use server'
 
 import { supabase } from '@/lib/supabaseClient'
-import { cookies } from 'next/headers'
+import { createClient } from '@supabase/supabase-js'
+ import { cookies } from 'next/headers'
 import { v4 as uuidv4 } from 'uuid'
+import nodemailer from 'nodemailer';
 
 type SignInInput = {
     email?: string
     phone?: string
     password: string
+  }
+
+  type ChangeEmailInput = {
+    newEmail: string
+    currentPassword: string
+  }
+
+  type ChangePasswordInput = {
+    currentPassword: string
+    newPassword: string
+  }
+
+  type SendOTPInput = {
+    email?: string
+    phone?: string
+  }
+  
+  type VerifyOTPInput = {
+    email?: string
+    phone?: string
+    otp: string
+    newPassword: string
   }
  
   
@@ -235,79 +259,350 @@ export async function signIn({ email, phone, password }: SignInInput) {
   }
 
 
-  // Add this to your auth.ts file (server-side)
-
-export async function changeEmail({
-  userId,
-  newEmail,
-}: {
-  userId: string
-  newEmail: string
-}) {
-  // 1. Validate input
-  if (!newEmail || !newEmail.includes('@')) {
-    return { error: 'Valid email is required' }
-  }
-
-  try {
-    // 2. Get the current email from tradingprofile
-    const { data: profile, error: profileError } = await supabase
-      .from('tradingprofile')
-      .select('email, auth_email')
-      .eq('id', userId)
-      .single()
-
-    if (profileError || !profile) {
-      return { error: 'User profile not found' }
-    }
-
-    const currentEmail = profile.email
-
-    // 3. Check if the new email is different
-    if (currentEmail === newEmail) {
-      return { error: 'New email must be different from current email' }
-    }
-
-    // 4. Check if email is already in use by another user
-    const { data: existingUser, error: emailCheckError } = await supabase
-      .from('tradingprofile')
-      .select('id')
-      .eq('email', newEmail)
-      .neq('id', userId)
-      .single()
-
-    if (emailCheckError && emailCheckError.code !== 'PGRST116') { // Ignore "no rows found" error
-      return { error: 'Error checking email availability' }
-    }
-
-    if (existingUser) {
-      return { error: 'Email is already in use by another account' }
-    }
-
-    // 5. Update email in auth.users table (if using email auth)
-    if (profile.auth_email && profile.auth_email.includes('@')) {
-      const { error: authError } = await supabase.auth.admin.updateUserById(userId, {
+  export async function easyChangeEmail({
+    newEmail,
+    currentPassword,
+  }: ChangeEmailInput) {
+    console.log('[Auth] Easy email change attempt initiated')
+  
+    try {
+      // 1. Basic validation
+      if (!newEmail || !currentPassword) {
+        return { error: 'Both email and current password are required' }
+      }
+  
+      // Simple email format validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(newEmail)) {
+        return { error: 'Please enter a valid email address' }
+      }
+  
+      // 2. Get session from cookies
+      const cookieStore = await cookies()
+      const accessToken = cookieStore.get('sb-access-token')?.value
+      const refreshToken = cookieStore.get('sb-refresh-token')?.value
+  
+      if (!accessToken || !refreshToken) {
+        return { error: 'Not authenticated. Please log in again.' }
+      }
+  
+      // 3. Set the session on the Supabase client
+      const { data: { session, user }, error: sessionError } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      })
+  
+      if (sessionError || !session || !user) {
+        console.error('Session error:', sessionError)
+        return { error: 'Session expired. Please log in again.' }
+      }
+  
+      // 4. Verify current password
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email || '',
+        password: currentPassword,
+      })
+  
+      if (signInError) {
+        return { error: 'Current password is incorrect' }
+      }
+  
+      // 5. Check if email is already in use by another account
+      const { data: existingUser, error: lookupError } = await supabase
+        .from('tradingprofile')
+        .select('id')
+        .eq('email', newEmail)
+        .neq('id', user.id)
+        .single()
+  
+      if (!lookupError && existingUser) {
+        return { error: 'This email is already in use by another account' }
+      }
+  
+      // 6. Update email in Auth
+      const { error: updateError } = await supabase.auth.updateUser({
         email: newEmail,
       })
-
-      if (authError) {
-        return { error: 'Failed to update authentication email' }
+  
+      if (updateError) {
+        return { error: updateError.message || 'Failed to update email in authentication system' }
       }
+  
+      // 7. Update email in tradingprofile table
+      const { error: profileError } = await supabase
+        .from('tradingprofile')
+        .update({ 
+          email: newEmail,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', user.id)
+  
+      if (profileError) {
+        // Attempt to revert auth email if profile update fails
+        await supabase.auth.updateUser({ email: user.email || '' })
+        return { error: 'Failed to update profile email' }
+      }
+  
+      return { 
+        success: true, 
+        message: 'Email updated successfully. Please check your new email for verification.' 
+      }
+  
+    } catch (err) {
+      console.error('Unexpected error in easyChangeEmail:', err)
+      return { error: 'An unexpected error occurred. Please try again.' }
     }
-
-    // 6. Update email in tradingprofile
-    const { error: updateError } = await supabase
-      .from('tradingprofile')
-      .update({ email: newEmail, updated_at: new Date().toISOString() })
-      .eq('id', userId)
-
-    if (updateError) {
-      return { error: 'Failed to update profile email' }
-    }
-
-    return { success: true, message: 'Email updated successfully' }
-  } catch (err) {
-    console.error('Error changing email:', err)
-    return { error: 'An unexpected error occurred' }
   }
+
+ 
+  export async function changePassword({
+    currentPassword,
+    newPassword,
+  }: ChangePasswordInput) {
+    try {
+      // 1. Basic validation
+      if (!currentPassword || !newPassword) {
+        return { error: 'Both current and new password are required' }
+      }
+  
+      // 2. Validate new password meets requirements (6+ chars, letters/numbers)
+      if (newPassword.length < 6) {
+        return { error: 'Password must be at least 6 characters long' }
+      }
+  
+      
+      // 3. Get session from cookies
+      const cookieStore =await cookies()
+      const accessToken = cookieStore.get('sb-access-token')?.value
+      const refreshToken = cookieStore.get('sb-refresh-token')?.value
+  
+      if (!accessToken || !refreshToken) {
+        return { error: 'Not authenticated. Please log in again.' }
+      }
+  
+      // 4. Set the session on the Supabase client
+      const { data: { user }, error: sessionError } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      })
+  
+      if (sessionError || !user) {
+        console.error('Session error:', sessionError)
+        return { error: 'Session expired. Please log in again.' }
+      }
+  
+      // 5. Verify current password
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email || '',
+        password: currentPassword,
+      })
+  
+      if (signInError) {
+        return { error: 'Current password is incorrect' }
+      }
+  
+      // 6. Update password
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword,
+      })
+  
+      if (updateError) {
+        return { error: updateError.message || 'Failed to update password' }
+      }
+  
+      return { 
+        success: true, 
+        message: 'Password updated successfully' 
+      }
+  
+    } catch (err) {
+      console.error('Unexpected error in changePassword:', err)
+      return { error: 'An unexpected error occurred. Please try again.' }
+    }
+  }
+
+
+  export async function signOut() {
+    try {
+      // 1. Sign out from Supabase Auth
+      const { error: authError } = await supabase.auth.signOut()
+      
+      if (authError) {
+        console.error('Supabase sign out error:', authError.message)
+        return { error: 'Failed to sign out from authentication service' }
+      }
+  
+      // 2. Clear all auth-related cookies
+      const cookieStore =await cookies()
+      
+      cookieStore.delete('sb-access-token')
+      cookieStore.delete('sb-refresh-token')
+      cookieStore.delete('user_id')
+  
+      // 3. Return success
+      return { success: true, message: 'Signed out successfully' }
+  
+    } catch (err) {
+      console.error('Unexpected sign out error:', err)
+      return { error: 'An unexpected error occurred during sign out' }
+    }
+  }
+
+
+
+
+export async function sendPasswordResetOTP({ email, phone }: SendOTPInput) {
+    try {
+        // Validate input
+        if (!email && !phone) return { error: 'Email or phone is required' }
+
+        // Find user by email or phone
+        const { data: user, error: userError } = await supabase
+            .from('tradingprofile')
+            .select('id, email, phone_number, auth_email')
+            .or(`email.eq.${email},phone_number.eq.${phone}`)
+            .single()
+
+        if (userError || !user) {
+            return { error: 'No account found with these credentials' }
+        }
+
+        // Generate a 6-digit OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString()
+        const otpExpiresAt = new Date(Date.now() + 15 * 60 * 1000) // 15 minutes from now
+
+        // Store OTP in database
+        const { error: otpError } = await supabase
+            .from('password_reset_otps')
+            .upsert({
+                user_id: user.id,
+                otp,
+                expires_at: otpExpiresAt.toISOString(),
+                contact_method: email ? 'email' : 'phone',
+                contact_value: email || phone,
+            })
+
+        if (otpError) {
+            console.error('Failed to store OTP:', otpError)
+            return { error: 'Failed to generate reset code' }
+        }
+
+        // Send OTP via email if email was provided
+        if (email) {
+            try {
+                // Create a transporter
+                const transporter = nodemailer.createTransport({
+                    service: 'gmail', // or your email service
+                    auth: {
+                        user: process.env.EMAIL_USERNAME,
+                        pass: process.env.EMAIL_PASSWORD,
+                    },
+                });
+
+                // Email options
+                const mailOptions = {
+                    from: process.env.EMAIL_FROM,
+                    to: email,
+                    subject: 'Your Password Reset OTP',
+                    html: `
+                        <p>Hello,</p>
+                        <p>Your OTP for password reset is: <strong>${otp}</strong></p>
+                        <p>This code will expire in 15 minutes.</p>
+                        <p>If you didn't request this, please ignore this email.</p>
+                    `,
+                };
+
+                // Send email
+                await transporter.sendMail(mailOptions);
+            } catch (emailError) {
+                console.error('Failed to send OTP email:', emailError);
+                return { error: 'Failed to send reset code' };
+            }
+        }
+        // TODO: Add SMS sending logic if phone was provided
+
+        return { 
+            success: true, 
+            message: 'Reset code sent successfully',
+        }
+
+    } catch (err) {
+        console.error('Unexpected error in sendPasswordResetOTP:', err)
+        return { error: 'An unexpected error occurred. Please try again.' }
+    }
 }
+  
+  export async function resetPasswordWithOTP({ email, phone, otp, newPassword }: VerifyOTPInput) {
+    try {
+      // Validate input
+      if (!otp || !newPassword) return { error: 'OTP and new password are required' }
+      if (newPassword.length < 6) return { error: 'Password must be at least 6 characters long' }
+  
+      // Find user by email or phone
+      const { data: user, error: userError } = await supabase
+        .from('tradingprofile')
+        .select('id, auth_email')
+        .or(`email.eq.${email},phone_number.eq.${phone}`)
+        .single()
+  
+      if (userError || !user) {
+        return { error: 'No account found with these credentials' }
+      }
+  
+      // Verify OTP
+      const { data: otpRecord, error: otpError } = await supabase
+        .from('password_reset_otps')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('otp', otp)
+        .gt('expires_at', new Date().toISOString())
+        .single()
+  
+      if (otpError || !otpRecord) {
+        return { error: 'Invalid or expired OTP. Please request a new one.' }
+      }
+  
+      // For phone users, we need to use the auth_email
+      const authEmail = user.auth_email
+  
+      // First try to authenticate (won't work if user doesn't know current password)
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email: authEmail,
+        password: 'dummy_password', // This will fail intentionally
+      })
+  
+      // When auth fails, use the admin client
+      if (authError) {
+        // Initialize admin client (should be imported from a different file)
+        const supabaseAdmin = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY!
+        )
+  
+        const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
+          user.id,
+          { password: newPassword }
+        )
+  
+        if (updateError) {
+          console.error('Password update error:', updateError)
+          return { error: 'Failed to update password. Please try again.' }
+        }
+      }
+  
+      // Delete used OTP
+      await supabase
+        .from('password_reset_otps')
+        .delete()
+        .eq('id', otpRecord.id)
+  
+      return {
+        success: true,
+        message: 'Password reset successfully! You can now log in with your new password.'
+      }
+    } catch (err) {
+      console.error('Unexpected error in resetPasswordWithOTP:', err)
+      return { error: 'An unexpected error occurred. Please try again.' }
+    }
+  }
+ 
