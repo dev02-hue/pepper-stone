@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FiMail, FiLock, FiCheckCircle, FiAlertCircle, FiLoader } from 'react-icons/fi'
 
-export default function EasyEmailChangeForm({ currentEmail }: { currentEmail: string }) {
+export default function EmailChangeForm() {
   const [formData, setFormData] = useState({
     newEmail: '',
     currentPassword: ''
@@ -35,10 +35,13 @@ export default function EasyEmailChangeForm({ currentEmail }: { currentEmail: st
       })
 
       if (result.error) {
-        setMessage({ text: result.error, type: 'error' })
+        setMessage({ 
+          text: result.error, 
+          type: 'error' 
+        })
       } else {
         setMessage({ 
-          text: result.message || 'Email changed successfully! Please check your new email for verification.', 
+          text: 'Email change request received! Please check both your current and new email addresses for verification links to complete the process.', 
           type: 'success' 
         })
         setFormData({
@@ -50,7 +53,7 @@ export default function EasyEmailChangeForm({ currentEmail }: { currentEmail: st
     } catch (err) {
       console.error('Email change error:', err)
       setMessage({ 
-        text: 'An unexpected error occurred. Please try again.', 
+        text: 'An unexpected error occurred. Please try again later.', 
         type: 'error' 
       })
     } finally {
@@ -68,17 +71,12 @@ export default function EasyEmailChangeForm({ currentEmail }: { currentEmail: st
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
           <FiMail className="text-blue-500" />
-          Change Email Address
+          Update Your Email Address
         </h2>
-        <p className="text-gray-500 mt-1 text-sm">Update your account&apos;s email address</p>
-      </div>
-      
-      <div className="mb-6 p-4 bg-blue-50 text-blue-800 rounded-lg border border-blue-100">
-        <p className="font-medium flex items-center gap-2">
-          <FiMail size={16} />
-          Current Email:
+        <p className="text-gray-500 mt-2">
+          To change your account email, please enter your new email address and confirm your identity with your current password.
+          You&apos;ll need to verify both the old and new email addresses to complete this process.
         </p>
-        <p className="mt-1 text-blue-900 font-mono">{currentEmail}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
@@ -107,6 +105,7 @@ export default function EasyEmailChangeForm({ currentEmail }: { currentEmail: st
         <div>
           <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-2">
             Current Password
+            <span className="text-xs text-gray-500 ml-1">(required for verification)</span>
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -121,7 +120,7 @@ export default function EasyEmailChangeForm({ currentEmail }: { currentEmail: st
               className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               required
               autoComplete="current-password"
-              placeholder="••••••••"
+              placeholder="Enter your current password"
             />
           </div>
         </div>
@@ -162,13 +161,22 @@ export default function EasyEmailChangeForm({ currentEmail }: { currentEmail: st
           {isLoading ? (
             <>
               <FiLoader className="animate-spin" />
-              Updating...
+              Verifying...
             </>
           ) : (
-            'Change Email'
+            'Request Email Change'
           )}
         </motion.button>
       </form>
+
+      <div className="mt-6 pt-6 border-t border-gray-100 text-sm text-gray-500">
+        <p className="font-medium text-gray-600">Important:</p>
+        <ul className="list-disc pl-5 mt-2 space-y-1">
+          <li>You&apos;ll receive verification links at both email addresses</li>
+          <li>The change won&apos;t complete until both verifications are done</li>
+          <li>Check your spam folder if you don&apos;t see the emails</li>
+        </ul>
+      </div>
     </motion.div>
   )
 }
