@@ -64,7 +64,7 @@ const SettingsPage = () => {
       {
         title: "Language",
         icon: <FaLanguage className="text-red-500" />,
-        action: () => handleNavigation('/language'),
+        action: () => handleNavigation('/user/language'),
         description: "Change application language"
       },
       {

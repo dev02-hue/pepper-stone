@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { easyChangeEmail } from '@/lib/auth'
 import { useRouter } from 'next/navigation'
+import { motion, AnimatePresence } from 'framer-motion'
+import { FiMail, FiLock, FiCheckCircle, FiAlertCircle, FiLoader } from 'react-icons/fi'
 
 export default function EasyEmailChangeForm({ currentEmail }: { currentEmail: string }) {
   const [formData, setFormData] = useState({
@@ -39,12 +41,10 @@ export default function EasyEmailChangeForm({ currentEmail }: { currentEmail: st
           text: result.message || 'Email changed successfully! Please check your new email for verification.', 
           type: 'success' 
         })
-        // Clear form on success
         setFormData({
           newEmail: '',
           currentPassword: ''
         })
-        // Refresh auth state
         router.refresh()
       }
     } catch (err) {
@@ -59,67 +59,116 @@ export default function EasyEmailChangeForm({ currentEmail }: { currentEmail: st
   }
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-4">Change Email Address</h2>
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="max-w-md mx-auto p-8 bg-white rounded-xl shadow-lg border border-gray-100"
+    >
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+          <FiMail className="text-blue-500" />
+          Change Email Address
+        </h2>
+        <p className="text-gray-500 mt-1 text-sm">Update your account&apos;s email address</p>
+      </div>
       
-      <div className="mb-4 p-3 bg-blue-50 text-blue-800 rounded">
-        <p className="font-medium">Current Email:</p>
-        <p>{currentEmail}</p>
+      <div className="mb-6 p-4 bg-blue-50 text-blue-800 rounded-lg border border-blue-100">
+        <p className="font-medium flex items-center gap-2">
+          <FiMail size={16} />
+          Current Email:
+        </p>
+        <p className="mt-1 text-blue-900 font-mono">{currentEmail}</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label htmlFor="newEmail" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="newEmail" className="block text-sm font-medium text-gray-700 mb-2">
             New Email Address
           </label>
-          <input
-            type="email"
-            id="newEmail"
-            name="newEmail"
-            value={formData.newEmail}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-            autoComplete="email"
-          />
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <FiMail className="text-gray-400" />
+            </div>
+            <input
+              type="email"
+              id="newEmail"
+              name="newEmail"
+              value={formData.newEmail}
+              onChange={handleChange}
+              className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              required
+              autoComplete="email"
+              placeholder="your.new@email.com"
+            />
+          </div>
         </div>
 
         <div>
-          <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-2">
             Current Password
           </label>
-          <input
-            type="password"
-            id="currentPassword"
-            name="currentPassword"
-            value={formData.currentPassword}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-            autoComplete="current-password"
-          />
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <FiLock className="text-gray-400" />
+            </div>
+            <input
+              type="password"
+              id="currentPassword"
+              name="currentPassword"
+              value={formData.currentPassword}
+              onChange={handleChange}
+              className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              required
+              autoComplete="current-password"
+              placeholder="••••••••"
+            />
+          </div>
         </div>
 
-        {message && (
-          <div className={`p-3 rounded-md ${message.type === 'success' 
-            ? 'bg-green-50 text-green-800' 
-            : 'bg-red-50 text-red-800'}`}>
-            {message.text}
-          </div>
-        )}
+        <AnimatePresence>
+          {message && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className={`p-4 rounded-lg flex items-start gap-3 ${
+                message.type === 'success' 
+                  ? 'bg-green-50 text-green-800 border border-green-100' 
+                  : 'bg-red-50 text-red-800 border border-red-100'
+              }`}
+            >
+              {message.type === 'success' ? (
+                <FiCheckCircle className="flex-shrink-0 mt-0.5 text-green-500" size={18} />
+              ) : (
+                <FiAlertCircle className="flex-shrink-0 mt-0.5 text-red-500" size={18} />
+              )}
+              <span className="text-sm">{message.text}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        <button
+        <motion.button
           type="submit"
           disabled={isLoading}
-          className={`w-full py-2 px-4 rounded-md text-white font-medium ${
+          whileHover={!isLoading ? { scale: 1.02 } : {}}
+          whileTap={!isLoading ? { scale: 0.98 } : {}}
+          className={`w-full py-3 px-4 rounded-lg text-white font-medium flex items-center justify-center gap-2 ${
             isLoading 
               ? 'bg-blue-400 cursor-not-allowed' 
               : 'bg-blue-600 hover:bg-blue-700'
-          } transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
+          } transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
         >
-          {isLoading ? 'Updating...' : 'Change Email'}
-        </button>
+          {isLoading ? (
+            <>
+              <FiLoader className="animate-spin" />
+              Updating...
+            </>
+          ) : (
+            'Change Email'
+          )}
+        </motion.button>
       </form>
-    </div>
+    </motion.div>
   )
 }
