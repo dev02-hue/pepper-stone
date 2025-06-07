@@ -12,7 +12,7 @@ import {
   FaUserShield,
   FaBell,
   FaLanguage,
-  FaPalette
+  
 } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
 import SignOutButton from '@/app/components/user/SignOutButton';
@@ -50,7 +50,7 @@ const SettingsPage = () => {
       {
         title: "Two-Factor Authentication",
         icon: <FaUserShield className="text-orange-500" />,
-        action: () => handleNavigation('/two-factor-auth'),
+        action: () => handleNavigation('/user/two-factor-auth'),
         description: "Enable extra security for your account"
       }
     ],
@@ -58,7 +58,7 @@ const SettingsPage = () => {
       {
         title: "Notification Settings",
         icon: <FaBell className="text-yellow-500" />,
-        action: () => handleNavigation('/notifications'),
+        action: () => handleNavigation('/user/notifications'),
         description: "Customize your notification preferences"
       },
       {
@@ -66,12 +66,6 @@ const SettingsPage = () => {
         icon: <FaLanguage className="text-red-500" />,
         action: () => handleNavigation('/user/language'),
         description: "Change application language"
-      },
-      {
-        title: "Appearance",
-        icon: <FaPalette className="text-indigo-500" />,
-        action: () => handleNavigation('/appearance'),
-        description: "Dark mode and theme settings"
       }
     ]
   };
@@ -152,29 +146,7 @@ const SettingsPage = () => {
           <SignOutButton />
         </div>
 
-        {/* Coming Soon Section */}
-        <div className="mt-12">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Coming Soon</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {[
-              "Transaction History",
-              "API Keys",
-              "Linked Accounts",
-              "Privacy Settings",
-              "Billing Information",
-              "Export Data"
-            ].map((item, index) => (
-              <motion.div
-                key={index}
-                whileHover={{ y: -2 }}
-                className="p-4 bg-gray-50 rounded-lg border border-gray-200"
-              >
-                <h3 className="font-medium text-gray-700">{item}</h3>
-                <p className="text-sm text-gray-500 mt-1">Available in next update</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
+         
       </div>
     </div>
   );

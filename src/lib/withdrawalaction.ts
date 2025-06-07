@@ -4,7 +4,8 @@ import { CryptoType } from '@/types/crypto';
 import { supabase } from '@/lib/supabaseClient'
 import { cookies } from 'next/headers'
 import { sendWithdrawalEmailToAdmin } from './email';
- 
+import nodemailer from 'nodemailer';
+
 // Define supported cryptocurrencies with their wallet addresses
 const CRYPTO_WALLETS = {
   USDC: '0x...', // Replace with actual wallet addresses
@@ -274,6 +275,63 @@ export async function approveCryptoWithdrawal(transactionUuid: string) {
         .eq('id', transaction.user_id);
 
       return { error: 'Transaction update failed after balance update' };
+    }
+
+    // 6. Send withdrawal confirmation email
+    console.log('[17] Preparing to send withdrawal confirmation email...');
+    try {
+      const { data: userProfile } = await supabase
+        .from('tradingprofile')
+        .select('email, first_name')
+        .eq('id', transaction.user_id)
+        .single();
+
+      if (userProfile?.email) {
+        const transporter = nodemailer.createTransport({
+          service: 'gmail',
+          auth: {
+            user: process.env.EMAIL_USERNAME,
+            pass: process.env.EMAIL_PASSWORD,
+          },
+        });
+
+        const recipientName = userProfile.first_name || 'Valued Client';
+        const mailOptions = {
+          from: `TTradeCapital <${process.env.EMAIL_USERNAME}>`,
+          to: userProfile.email,
+          subject: `Withdrawal Processed - ${cryptoAmount.toFixed(6)} ${cryptoType}`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #2a52be;">Withdrawal Successfully Processed</h2>
+              <p>Dear ${recipientName},</p>
+              
+              <p>We're confirming that your withdrawal request has been successfully processed:</p>
+              
+              <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                <p><strong>Amount:</strong> ${cryptoAmount.toFixed(6)} ${cryptoType}</p>
+                <p><strong>USD Value:</strong> $${transaction.amount.toFixed(2)}</p>
+                <p><strong>Destination Wallet:</strong> ${transaction.wallet_address}</p>
+                <p><strong>Transaction ID:</strong> ${transactionUuid}</p>
+              </div>
+              
+              <p>The funds should arrive in your external wallet within the next few minutes, depending on network conditions.</p>
+              
+              <p>If you didn't initiate this withdrawal or have any questions, please contact our support team immediately.  trade3865@gmail.com</p>
+              
+              <p style="margin-top: 30px;">Best regards,<br>
+              The TTradeCapital Team</p>
+              
+               
+            </div>
+          `,
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log('[18] Withdrawal confirmation email sent successfully');
+      }
+    } catch (emailError) {
+      console.error('[WARNING] Failed to send withdrawal confirmation email:', emailError);
+      // Continue with the approval even if email fails
     }
 
     console.log('[SUCCESS] Withdrawal approved and balances updated successfully.');
