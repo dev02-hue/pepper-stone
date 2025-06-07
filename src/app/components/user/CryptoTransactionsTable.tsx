@@ -20,21 +20,21 @@ const CryptoIcon = ({ cryptoType }: { cryptoType: string }) => {
     USDC: <FiDollarSign className="text-blue-400" />,
   }
 
-  return <div className="text-xl">{icons[cryptoType] || cryptoType}</div>
+  return <div className="text-lg sm:text-xl">{icons[cryptoType] || cryptoType}</div>
 }
 
 const StatusBadge = ({ status }: { status: string }) => {
   const statusConfig: Record<string, { icon: React.ReactNode; color: string }> = {
     completed: {
-      icon: <FiCheckCircle />,
+      icon: <FiCheckCircle className="text-xs sm:text-sm" />,
       color: 'bg-green-100 text-green-800',
     },
     failed: {
-      icon: <FiXCircle />,
+      icon: <FiXCircle className="text-xs sm:text-sm" />,
       color: 'bg-red-100 text-red-800',
     },
     pending: {
-      icon: <FiClock />,
+      icon: <FiClock className="text-xs sm:text-sm" />,
       color: 'bg-yellow-100 text-yellow-800',
     },
   }
@@ -42,22 +42,22 @@ const StatusBadge = ({ status }: { status: string }) => {
   const config = statusConfig[status.toLowerCase()] || statusConfig.pending
 
   return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.color}`}>
+    <span className={`inline-flex items-center px-2 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full text-xs font-medium ${config.color}`}>
       {config.icon}
-      <span className="ml-1 capitalize">{status}</span>
+      <span className="ml-1 capitalize hidden sm:inline">{status}</span>
     </span>
   )
 }
 
 const TransactionTypeIcon = ({ type }: { type: string }) => {
   return (
-    <div className="flex items-center">
+    <div className="flex items-center text-sm sm:text-base">
       {type === 'withdrawal' ? (
         <FiArrowUp className="text-red-500" />
       ) : (
         <FiArrowDown className="text-green-500" />
       )}
-      <span className="ml-1 capitalize">{type}</span>
+      <span className="ml-1 capitalize hidden sm:inline">{type}</span>
     </div>
   )
 }
@@ -126,65 +126,106 @@ export default function CryptoTransactionsTable() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 rounded-lg"
+      className="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 rounded-lg"
     >
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Type
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Crypto
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Amount
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Status
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Reference
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Date
-            </th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
+      <div className="min-w-[320px]">
+        {/* Mobile view - Card layout */}
+        <div className="sm:hidden space-y-4 p-4">
           {transactions.map((tx) => (
-            <motion.tr
+            <motion.div
               key={tx.reference}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
-              className="hover:bg-gray-50"
+              className="border rounded-lg p-4 hover:bg-gray-50"
             >
-              <td className="px-6 py-4 whitespace-nowrap">
-                <TransactionTypeIcon type={tx.type} />
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="flex items-center">
+              <div className="flex justify-between items-start">
+                <div className="flex items-center space-x-2">
                   <CryptoIcon cryptoType={tx.crypto_type} />
-                  <span className="ml-2">{tx.crypto_type}</span>
+                  <div>
+                    <div className="font-medium">{tx.crypto_type}</div>
+                    <div className="text-sm text-gray-500">
+                      {format(new Date(tx.created_at), 'MMM dd, HH:mm')}
+                    </div>
+                  </div>
                 </div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {tx.amount}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
                 <StatusBadge status={tx.status} />
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {tx.reference}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {format(new Date(tx.created_at), 'MMM dd, yyyy HH:mm')}
-              </td>
-            </motion.tr>
+              </div>
+              
+              <div className="mt-3 flex justify-between items-center">
+                <div>
+                  <TransactionTypeIcon type={tx.type} />
+                  <div className="text-xs text-gray-500 mt-1 truncate max-w-[120px]">
+                    Ref: {tx.reference}
+                  </div>
+                </div>
+                <div className="text-lg font-semibold">
+                  {tx.amount}
+                </div>
+              </div>
+            </motion.div>
           ))}
-        </tbody>
-      </table>
+        </div>
+
+        {/* Desktop view - Table layout */}
+        <table className="hidden sm:table min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Type
+              </th>
+              <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Crypto
+              </th>
+              <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Amount
+              </th>
+              <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Status
+              </th>
+              <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Reference
+              </th>
+              <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Date
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {transactions.map((tx) => (
+              <motion.tr
+                key={tx.reference}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="hover:bg-gray-50"
+              >
+                <td className="px-3 py-4 whitespace-nowrap">
+                  <TransactionTypeIcon type={tx.type} />
+                </td>
+                <td className="px-3 py-4 whitespace-nowrap">
+                  <div className="flex items-center">
+                    <CryptoIcon cryptoType={tx.crypto_type} />
+                    <span className="ml-2">{tx.crypto_type}</span>
+                  </div>
+                </td>
+                <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {tx.amount}
+                </td>
+                <td className="px-3 py-4 whitespace-nowrap">
+                  <StatusBadge status={tx.status} />
+                </td>
+                <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-500 truncate max-w-[120px]">
+                  {tx.reference}
+                </td>
+                <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {format(new Date(tx.created_at), 'MMM dd, yyyy HH:mm')}
+                </td>
+              </motion.tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </motion.div>
   )
 }

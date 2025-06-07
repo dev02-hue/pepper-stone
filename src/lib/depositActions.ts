@@ -1,22 +1,22 @@
 'use server'
 import { CryptoType } from '@/types/crypto';
-
+import nodemailer from 'nodemailer';
 import { supabase } from '@/lib/supabaseClient'
 import { cookies } from 'next/headers'
 import { sendDepositEmailToAdmin } from './email'
  
 // Define supported cryptocurrencies with their wallet addresses
 const CRYPTO_WALLETS = {
-  USDC: '0x...', // Replace with actual wallet addresses
-  USDT: '0x...',
+  USDC: '0xBD08A48A21bA27CD4F1f48967dfd18F2Ca0E63Cc', // Replace with actual wallet addresses
+  USDT: 'TBpZLpmHPDUDCFgsyHNNQwbaDdxZEs18FT',
   DOT: '0x...',
-  XRP: 'r...',
-  ETH: '0x...',
+  XRP: 'rNCmBcJ15jnxpsb1or1zsLsetXTiPKoGpF',
+  ETH: '0xBD08A48A21-A27CD4F1f48967dfd18F2Ca0E63Cc',
   AVAX: 'X-...',
   ADA: 'addr...',
-  SOL: '...',
-  BTC: 'bc1...',
-  BNB: 'bnb...'
+  SOL: '0xBD08A48A21bA27CD4F1f48967dfd18F2Ca0E63Cc',
+  BTC: 'bc1qqzczapj35lyk5x2r4q54x5wpzjxcch07xlfqs2',
+  BNB: '0xBD08A48A21bA27CD4F1f48967dfd18F2Ca0E63Cc'
 }
 
 export async function initiateCryptoDeposit(
@@ -260,6 +260,59 @@ export async function approveCryptoDeposit(transactionUuid: string) {
         .eq('id', transaction.user_id);
 
       return { error: 'Transaction update failed after balance update' };
+    }
+
+    // 6. Send email notification to user
+    console.log('[17] Preparing to send approval email...');
+    try {
+      const { data: userProfile } = await supabase
+        .from('tradingprofile')
+        .select('email')
+        .eq('id', transaction.user_id)
+        .single();
+
+      if (userProfile?.email) {
+        const transporter = nodemailer.createTransport({
+          service: 'gmail',
+          auth: {
+            user: process.env.EMAIL_USERNAME,
+            pass: process.env.EMAIL_PASSWORD,
+          },
+        });
+
+        const mailOptions = {
+          from: `TTradeCapital <${process.env.EMAIL_USERNAME}>`,
+          to: userProfile.email,
+          subject: `Deposit Confirmation - ${cryptoAmount.toFixed(6)} ${cryptoType}`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #2a52be;">Deposit Successfully Processed</h2>
+              <p>Dear Valued Client,</p>
+              
+              <p>We're pleased to confirm that your deposit of <strong>${cryptoAmount.toFixed(6)} ${cryptoType}</strong> 
+              (equivalent to $${transaction.amount.toFixed(2)}) has been successfully credited to your TTradeCapital wallet.</p>
+              
+              <p>Your investment will now begin growing according to your selected portfolio strategy. 
+              You can monitor your investment performance directly in your dashboard.</p>
+              
+              <p>Thank you for trusting TTradeCapital with your investment.</p>
+              
+              <p style="margin-top: 30px;">Best regards,<br>
+              The TTradeCapital Team</p>
+              
+              <p style="font-size: 12px; color: #666; margin-top: 30px;">
+                This is an automated message. Please do not reply directly to this email.
+              </p>
+            </div>
+          `,
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log('[18] Approval email sent successfully');
+      }
+    } catch (emailError) {
+      console.error('[WARNING] Failed to send approval email:', emailError);
+      // Continue with the approval even if email fails
     }
 
     console.log('[SUCCESS] Transaction approved and balances updated successfully.');
