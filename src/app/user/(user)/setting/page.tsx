@@ -16,6 +16,7 @@ import {
 } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
 import SignOutButton from '@/app/components/user/SignOutButton';
+ import { FiHeadphones } from 'react-icons/fi';
  
 const SettingsPage = () => {
   const router = useRouter();
@@ -66,6 +67,12 @@ const SettingsPage = () => {
         icon: <FaLanguage className="text-red-500" />,
         action: () => handleNavigation('/user/language'),
         description: "Change application language"
+      },
+      {
+        title: "contact",
+        icon: <FiHeadphones className="text-red-500" />,
+        action: () => handleNavigation('/user/contactus'),
+        description: "Contact us"
       }
     ]
   };

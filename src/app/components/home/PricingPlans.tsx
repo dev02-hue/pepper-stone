@@ -12,7 +12,7 @@ export default function PricingPlans() {
       {/* Title Section */}
       <div className="mb-16 sm:pl-10 lg:pl-20">
         <h3 className="text-[#FF6347] font-bold text-base sm:text-lg md:text-xl lg:text-2xl border-l-4 border-[#FF6347] pl-3 inline-block">
-          Bitci Stack Asset BSA Investment Plans
+          TTRADECAPITAL INVESTMENT PLANS
         </h3>
         <h1 className="mt-4 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold text-gray-900 leading-snug sm:leading-tight">
           Take a look at our best investment plans where you will get the
