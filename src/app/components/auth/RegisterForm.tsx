@@ -188,7 +188,7 @@ const RegisterForm = () => {
               </div>
             </motion.div>
 
-            {/* Phone Field (Optional) */}
+            {/* Phone Field (Optional)
             <motion.div
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
@@ -211,7 +211,7 @@ const RegisterForm = () => {
                   className="w-full pl-10 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FD4A36]"
                 />
               </div>
-            </motion.div>
+            </motion.div> */}
 
             {/* Password Field */}
             <motion.div

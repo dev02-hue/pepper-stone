@@ -7,16 +7,16 @@ const FAQComponent = () => {
 
   const faqs = [
     {
-      question: "What types of investment services do you offer?",
-      answer: "We provide comprehensive wealth management solutions including portfolio management, retirement planning, cryptocurrency investments, and tax optimization strategies. Our services are tailored to both individual and institutional investors."
+      question: "What investment solutions does Ttrade Capital provide?",
+  answer: "Ttrade Capital offers diversified investment services including algorithmic trading portfolios, crypto asset management, AI-driven wealth building, and institutional-grade market analysis tools. Our platform caters to both active traders and long-term investors."
+},
+  {
+      question: "How do I start trading on Ttrade Capital?",
+  answer: "Simply  visit our web platform, complete your registration then login, fund your account via multiple payment methods, and you'll gain instant access to our trading dashboard and investment tools."
     },
     {
-      question: "How do I open an investment account with your firm?",
-      answer: "You can start by completing our online application form, which includes identity verification for compliance purposes. Once submitted, our team will review your application and contact you within 1-2 business days to complete the onboarding process."
-    },
-    {
-      question: "What are your minimum investment requirements?",
-      answer: "Minimum investments vary by product. Our bronze investment plans start at $300, while silver require minimum balances of $5,000. Certain specialized products may have higher minimums."
+      question: "What's the minimum deposit to use Ttrade Capital?",
+  answer: "Ttrade Capital has tiered access: $300 for Basic tier, $1000 for Pro traders (with advanced charting tools), and $5,000 for Institutional accounts service."
     },
     {
       question: "How secure is my personal and financial information?",
@@ -31,8 +31,8 @@ const FAQComponent = () => {
       answer: "Yes, our secure client portal provides 24/7 access to your portfolio with real-time performance tracking, detailed reports, and document storage. The portal is accessible via web browser and our mobile app."
     },
     {
-      question: "How often will I receive performance reports?",
-      answer: "Clients receive comprehensive quarterly performance reports. Additionally, you can generate custom reports anytime through your client portal. Our advisors are also available for scheduled performance reviews."
+       question: "What trading tools are available on your platform?",
+  answer: "Ttrade Capital provides real-time market scanners, institutional-grade charting with 50+ indicators, backtesting suites, and a social trading hub where users can mirror top-performing investors."
     },
     {
       question: "What makes your investment approach unique?",

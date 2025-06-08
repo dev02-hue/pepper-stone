@@ -39,7 +39,7 @@ export const Nav = () => {
         <div className="flex justify-between items-center">
           {/* Logo */}
           <div className="flex items-center bg-[#FD4A36] px-4 py-2">
-            <span className="text-white font-bold text-lg">TRADING PLATFORM</span>
+            <span className="text-white font-bold text-lg">TTRADECAPITAL</span>
           </div>
 
           {/* Desktop Links */}

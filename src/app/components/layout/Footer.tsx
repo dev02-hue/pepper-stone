@@ -68,7 +68,7 @@ const Footer = () => {
               transition={{ duration: 0.5 }}
             >
               <h3 className="text-2xl font-bold mb-4">
-                <span className="text-[#FD4A36]">TRADING</span>PLATFORM
+                <span className="text-[#FD4A36]">TTRADE</span>CAPITAL
               </h3>
               <p className="text-gray-400 mb-6">
                 Your trusted partner for strategic wealth creation and financial growth since 2015.

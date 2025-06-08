@@ -10,7 +10,7 @@ import { signIn } from '@/lib/auth'
 
 const LoginForm = () => {
   const [email, setEmail] = useState('')
-  const [phone, setPhone] = useState('')
+  // const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
   const [success, setSuccess] = useState(false)
 
@@ -24,7 +24,7 @@ const LoginForm = () => {
     setError(null)
 
     try {
-      const response = await signIn({ email, phone, password })
+      const response = await signIn({ email,  password })
 
       if (response.error) {
         setError(response.error)
@@ -84,7 +84,7 @@ const LoginForm = () => {
               />
             </div>
 
-            <div className="mb-4">
+            {/* <div className="mb-4">
               <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
                 Phone (optional)
               </label>
@@ -95,7 +95,7 @@ const LoginForm = () => {
                 onChange={(e) => setPhone(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-md"
               />
-            </div>
+            </div> */}
 
             <div className="mb-6">
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
