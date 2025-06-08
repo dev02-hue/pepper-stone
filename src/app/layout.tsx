@@ -15,9 +15,49 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "TRADING SITE",
-  description: "Global investment and trading platform offering real-time market access...",
-}
+  title: "TTRADE CAPITAL | Global Investment & Trading Platform",
+  description: "Trade stocks, forex, and cryptocurrencies with real-time market data, advanced tools, and secure transactions. Join millions of traders worldwide.",
+  keywords: ["trading", "investing", "stocks", "forex", "cryptocurrency", "market"],
+  authors: [{ name: "Ttradecapital Team", url: "https://www.ttradecapital.com/" }],
+  openGraph: {
+    title: "Ttradecapital | Global Investment & Trading Platform",
+    description: "Trade stocks, forex, and cryptocurrencies with real-time market data.",
+    url: "https://www.ttradecapital.com/",
+    siteName: "TTRADECAPITAL",
+    images: [
+      {
+        url: "https://www.ttradecapital.com/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "TTRADECAPITAL - Global Investment & Trading Platform",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "TradeHub | Global Investment & Trading Platform",
+    description: "Trade stocks, forex, and cryptocurrencies with real-time market data.",
+    images: ["https://www.ttradecapital.com/twitter-card.jpg"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    nocache: false,
+    googleBot: {
+      index: true,
+      follow: true,
+      noimageindex: false,
+    },
+  },
+  themeColor: "#1A1A2E",
+  metadataBase: new URL("https://www.ttradecapital.com/"),
+  alternates: {
+    canonical: "/",
+  },
+   
+};
 
 export default function RootLayout({
   children,
