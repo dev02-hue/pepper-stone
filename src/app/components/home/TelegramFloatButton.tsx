@@ -4,7 +4,8 @@ import { FaTelegramPlane } from "react-icons/fa";
 
 const TelegramFloatButton = () => {
   // Replace with your actual Telegram link
-  const telegramLink = "https://t.me/onlymanager_1";
+  // const telegramLink = "https://t.me/onlymanager_1";
+  const telegramLink = "https://t.me/+XC85N1qPygEzNDc0"       
   
   return (
     <motion.div

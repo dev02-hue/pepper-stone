@@ -1,5 +1,5 @@
 "use client";
-import { FaFacebook, FaTwitter, FaLinkedin, FaInstagram, FaEnvelope, FaMapMarkerAlt, FaClock } from 'react-icons/fa';
+import { FaFacebook, FaTwitter, FaLinkedin, FaInstagram, FaEnvelope, FaMapMarkerAlt, FaClock, FaPhoneAlt } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 
 const Footer = () => {
@@ -90,6 +90,10 @@ const Footer = () => {
                   trade3865@gmail.com
                   </a>
                 </div>
+                <div className="flex items-center">
+  <FaPhoneAlt className="text-[#FD4A36] mr-3" />
+  <span className="text-gray-300">+1 (509) 380-4231</span>
+</div>
                 <div className="flex items-center">
                   <FaClock className="text-[#FD4A36] mr-3" />
                   <span className="text-gray-300">Always Opem</span>
