@@ -141,7 +141,7 @@ const ContactPage = () => {
         <div className="space-y-6">
           <motion.a
             whileHover={{ x: 5 }}
-            href="https://t.me/onlymanager_1"  
+            href="https://t.me/+XC85N1qPygEzNDc0"  
             target="_blank"
             rel="noopener noreferrer"
             className="block bg-white rounded-xl shadow-lg p-6 border border-gray-100 hover:border-blue-300 transition-all"
