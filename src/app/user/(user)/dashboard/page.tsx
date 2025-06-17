@@ -210,8 +210,14 @@ const CryptoDashboard = () => {
               <div>
                 <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total Balance</p>
                 <h2 className="text-2xl font-bold mt-1">
-                 $ {isLoading ? '...' : balanceData.toFixed(2)}
-                </h2>
+  {isLoading || typeof balanceData !== 'number'
+    ? '...'
+    : new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2
+      }).format(balanceData)}
+</h2>
               </div>
               <div className={`p-3 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
                 <FiDollarSign className="text-[#FD4A36]" size={20} />
