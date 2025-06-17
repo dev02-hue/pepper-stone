@@ -11,7 +11,7 @@
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "@reduxjs/toolkit": "^2.7.0",
-    "@supabase/auth-helpers-nextjs": "^0.10.0",
+    "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.49.8",
     "animate.css": "^4.1.1",
     "axios": "^1.9.0",
@@ -27,16 +27,15 @@
     "recharts": "^2.15.3"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
+    "@eslint/eslintrc": "^3.3.1",
     "@tailwindcss/postcss": "^4",
-    "@types/next-auth": "^3.13.0",
     "@types/node": "^20",
     "@types/nodemailer": "^6.4.17",
     "@types/react": "^19.1.6",
     "@types/react-dom": "^19",
     "@types/uuid": "^10.0.0",
-    "eslint": "^9",
-    "eslint-config-next": "15.3.0",
+    "eslint": "^9.29.0",
+    "eslint-config-next": "15.3.3",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

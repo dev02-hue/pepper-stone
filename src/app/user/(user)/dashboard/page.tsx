@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { 
   AreaChart, Area, BarChart, Bar, LineChart, Line, XAxis, YAxis, 
   CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell 
@@ -87,7 +87,7 @@ const CryptoDashboard = () => {
   }
 
   // Simulate price changes
-  const simulatePriceChanges = () => {
+  const simulatePriceChanges = useCallback(() => {
     setPriceData(prev => ({
       BTC: prev.BTC * (1 + (Math.random() * 0.02 - 0.01)),
       ETH: prev.ETH * (1 + (Math.random() * 0.02 - 0.01)),
@@ -95,8 +95,8 @@ const CryptoDashboard = () => {
       SOL: prev.SOL * (1 + (Math.random() * 0.02 - 0.01)),
       XRP: prev.XRP * (1 + (Math.random() * 0.02 - 0.01)),
       USDT: 1.00
-    }))
-
+    }));
+  
     setPortfolioData(prev => prev.map(item => ({
       ...item,
       change: item.name === 'USDT' ? 0 : Number((item.change + (Math.random() * 0.4 - 0.2)).toFixed(2)),
@@ -106,19 +106,19 @@ const CryptoDashboard = () => {
              item.name === 'SOL' ? solBalance * priceData.SOL :
              item.name === 'XRP' ? xrpBalance * priceData.XRP :
              usdtBalance * priceData.USDT,
-    })))
-  }
-
+    })));
+  }, [btcBalance, ethBalance, bnbBalance, solBalance, xrpBalance, usdtBalance]);
+  
   useEffect(() => {
-    fetchBalance()
+    fetchBalance(); // Only fetch balances once when component mounts
     
     // Set up interval for price changes
-    const interval = setInterval(() => {
-      simulatePriceChanges()
-    }, 3000) // Change every 3 seconds
-
-    return () => clearInterval(interval)
-  }, [])
+    const priceInterval = setInterval(() => {
+      simulatePriceChanges();
+    }, 2000); // Change every 3 seconds
+  
+    return () => clearInterval(priceInterval);
+  }, [simulatePriceChanges]);
 
   // Calculate totals
   const totalBalance = portfolioData.reduce((sum, item) => sum + item.value, 0)
@@ -829,4 +829,4 @@ const CryptoDashboard = () => {
   )
 }
 
-export default CryptoDashboard
+export default CryptoDashboard;
