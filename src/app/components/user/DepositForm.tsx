@@ -16,7 +16,7 @@ import {
 } from 'react-icons/fa'
 import { SiLitecoin, SiTether } from 'react-icons/si'
 
-const AMOUNT_OPTIONS = [300, 600, 1200, 1500, 3000, 6000, 10000] as const
+const AMOUNT_OPTIONS = [300, 600, 1200, 1500, 3000, 6000, 10000,20000,30000] as const
 
 interface PaymentDetails {
   amount: number
