@@ -11,13 +11,19 @@ const CRYPTO_WALLETS = {
   USDT: 'TBpZLpmHPDUDCFgsyHNNQwbaDdxZEs18FT',
   DOT: '0x...',
   XRP: 'rNCmBcJ15jnxpsb1or1zsLsetXTiPKoGpF',
-  ETH: '0xBD08A48A21-A27CD4F1f48967dfd18F2Ca0E63Cc',
+  ETH: '0x199b0B3f216948a9BDef4aC3B8152497006f6db0',
   AVAX: 'X-...',
   ADA: 'addr...',
   SOL: '0xBD08A48A21bA27CD4F1f48967dfd18F2Ca0E63Cc',
-  BTC: 'bc1qqzczapj35lyk5x2r4q54x5wpzjxcch07xlfqs2',
-  BNB: '0xBD08A48A21bA27CD4F1f48967dfd18F2Ca0E63Cc'
+  BTC: 'bc1qem2t673xk0e5m0dsfcae8uflxk5xs8l7c05jkx',
+  BNB: '0x199b0B3f216948a9BDef4aC3B8152497006f6db0'
 }
+// btc
+// bc1qqzczapj35lyk5x2r4q54x5wpzjxcch07xlfqs2
+// eth
+// 0xBD08A48A21-A27CD4F1f48967dfd18F2Ca0E63Cc
+// bnb
+// 0xBD08A48A21bA27CD4F1f48967dfd18F2Ca0E63Cc
 
 export async function initiateCryptoDeposit(
   amount: number,
