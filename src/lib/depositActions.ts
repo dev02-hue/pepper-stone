@@ -8,7 +8,7 @@ import { sendDepositEmailToAdmin } from './email'
 // Define supported cryptocurrencies with their wallet addresses
 const CRYPTO_WALLETS = {
   USDC: '0xBD08A48A21bA27CD4F1f48967dfd18F2Ca0E63Cc', // Replace with actual wallet addresses
-  USDT: 'TBpZLpmHPDUDCFgsyHNNQwbaDdxZEs18FT',
+  USDT: '0x68A26867e2f9727A0035001B5C875a43A7beDAF1',
   DOT: '0x...',
   XRP: 'rNCmBcJ15jnxpsb1or1zsLsetXTiPKoGpF',
   ETH: '0x199b0B3f216948a9BDef4aC3B8152497006f6db0',
@@ -18,12 +18,18 @@ const CRYPTO_WALLETS = {
   BTC: 'bc1qem2t673xk0e5m0dsfcae8uflxk5xs8l7c05jkx',
   BNB: '0x199b0B3f216948a9BDef4aC3B8152497006f6db0'
 }
-// btc
+// joker btc
 // bc1qqzczapj35lyk5x2r4q54x5wpzjxcch07xlfqs2
 // eth
 // 0xBD08A48A21-A27CD4F1f48967dfd18F2Ca0E63Cc
 // bnb
 // 0xBD08A48A21bA27CD4F1f48967dfd18F2Ca0E63Cc
+// usdt 
+// TBpZLpmHPDUDCFgsyHNNQwbaDdxZEs18FT
+
+// chidera btc
+// bc1qem2t673xk0e5m0dsfcae8uflxk5xs8l7c05jkx
+// chidera eth
 
 export async function initiateCryptoDeposit(
   amount: number,
