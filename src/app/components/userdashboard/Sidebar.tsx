@@ -11,7 +11,7 @@ import {
   FiEye,
   FiEyeOff
 } from 'react-icons/fi'
-import { FaBitcoin, FaWallet, FaPlus, FaMinus } from 'react-icons/fa'
+import { FaBitcoin, FaWallet, FaPlus, FaMinus, FaMoneyCheckAlt, FaChartLine } from 'react-icons/fa'
 import { RiExchangeDollarLine } from 'react-icons/ri'
 import { getUserBalance } from '@/lib/getUserBalance'
 import { getUserWalletBalances } from '@/lib/getUserWalletBalances'
@@ -35,6 +35,8 @@ const BottomBar = () => {
   const menuItems = [
     { name: 'dashboard', icon: <FiPieChart className="text-inherit" />, label: 'Dashboard' },
     { name: 'deposit', icon: <FiDollarSign className="text-inherit" />, label: 'Deposit' },
+    { name: 'loan', icon: <FaMoneyCheckAlt className="text-inherit" />, label: 'Loan Service' },
+    { name: 'investment', icon: <FaChartLine className="text-inherit" />, label: 'Invest Capital' },
     { name: 'withdrawal', icon: <RiExchangeDollarLine className="text-inherit" />, label: 'Withdraw' },
     { name: 'wallet', icon: <FaWallet className="text-inherit" />, label: 'Wallet' },
     { name: 'history', icon: <FiClock className="text-inherit" />, label: 'History' },

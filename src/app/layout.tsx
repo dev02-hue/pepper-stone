@@ -1,18 +1,19 @@
-import type { Metadata } from "next"
-import { Geist, Geist_Mono } from "next/font/google"
-import "./globals.css"
- import RootStructure from "./components/layout/RootStructure"
- import TelegramFloatButtonWrapper from "./components/utils/TelegramFloatButtonWrapper"
- 
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+import RootStructure from "./components/layout/RootStructure";
+import DynamicTelegramFloatButtonWrapper from "./components/DynamicTelegramFloatButtonWrapper";
+import ClientRoot from "./components/ClientRoot";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
-})
+});
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
-})
+});
 
 export const metadata: Metadata = {
   title: "TTRADE CAPITAL | Global Investment & Trading Platform",
@@ -51,12 +52,14 @@ export const metadata: Metadata = {
       noimageindex: false,
     },
   },
-  themeColor: "#1A1A2E",
   metadataBase: new URL("https://www.ttradecapital.com/"),
   alternates: {
     canonical: "/",
   },
-   
+};
+
+export const viewport = {
+  themeColor: "#1A1A2E",
 };
 
 export default function RootLayout({
@@ -65,15 +68,15 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        
+        <ClientRoot>
           <RootStructure>
             {children}
-            <TelegramFloatButtonWrapper /> 
+            <DynamicTelegramFloatButtonWrapper />
           </RootStructure>
-         
+        </ClientRoot>
       </body>
     </html>
-  )
+  );
 }
