@@ -49,11 +49,11 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             <FiDownload /> All Withdrawals
           </Link>
           <Link 
-            href="/joker/reports" 
+            href="/joker/loan" 
             className="flex items-center hover:bg-gray-700 px-4 py-2 rounded gap-2"
             onClick={() => setIsSidebarOpen(false)}
           >
-            <FiFileText /> Reports
+            <FiFileText /> Loan Management
           </Link>
           <Link 
             href="/joker/investment-management" 

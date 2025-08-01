@@ -86,8 +86,7 @@ const CryptoDashboard = () => {
     }
   }
 
-  // Simulate price changes
-  const simulatePriceChanges = useCallback(() => {
+   const simulatePriceChanges = useCallback(() => {
     setPriceData(prev => ({
       BTC: prev.BTC * (1 + (Math.random() * 0.02 - 0.01)),
       ETH: prev.ETH * (1 + (Math.random() * 0.02 - 0.01)),
@@ -110,12 +109,11 @@ const CryptoDashboard = () => {
   }, [btcBalance, ethBalance, bnbBalance, solBalance, xrpBalance, usdtBalance]);
   
   useEffect(() => {
-    fetchBalance(); // Only fetch balances once when component mounts
+    fetchBalance();  
     
-    // Set up interval for price changes
-    const priceInterval = setInterval(() => {
+     const priceInterval = setInterval(() => {
       simulatePriceChanges();
-    }, 2000); // Change every 3 seconds
+    }, 2000);  
   
     return () => clearInterval(priceInterval);
   }, [simulatePriceChanges]);

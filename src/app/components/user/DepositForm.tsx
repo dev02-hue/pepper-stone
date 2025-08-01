@@ -1,7 +1,7 @@
 'use client'
 
 import { initiateCryptoDeposit } from '@/lib/depositActions'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { CryptoType, CRYPTO_OPTIONS } from '@/types/crypto'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
@@ -12,11 +12,13 @@ import {
   FaClipboard, 
   FaCheck,
   FaArrowLeft,
-  FaCoins
+  FaCoins,
+  FaSpinner
 } from 'react-icons/fa'
 import { SiLitecoin, SiTether } from 'react-icons/si'
+import { getUserBalance } from '@/lib/getUserBalance'
 
-const AMOUNT_OPTIONS = [300, 600, 1200, 1500, 3000, 6000, 10000,20000,30000] as const
+const AMOUNT_OPTIONS = [300, 600, 1200, 1500, 3000, 6000, 10000, 20000, 30000] as const
 
 interface PaymentDetails {
   amount: number
@@ -27,18 +29,17 @@ interface PaymentDetails {
 }
 
 const cryptoIcons = {
-  BTC: <FaBitcoin className="text-orange-500" />,
-  ETH: <FaEthereum className="text-purple-500" />,
-  USDT: <SiTether className="text-emerald-500" />,
-  USDC: <SiLitecoin className="text-gray-500" />,
-  DOT: <FaCoins className="text-pink-500" />,
-  XRP: <FaCoins className="text-blue-400" />,
-  AVAX: <FaCoins className="text-red-500" />,
-  ADA: <FaCoins className="text-blue-600" />,
-  SOL: <FaCoins className="text-teal-500" />,
-  BNB: <FaCoins className="text-yellow-400" />
+  BTC: <FaBitcoin className="text-orange-500" size={20} />,
+  ETH: <FaEthereum className="text-purple-500" size={20} />,
+  USDT: <SiTether className="text-emerald-500" size={20} />,
+  USDC: <SiLitecoin className="text-gray-500" size={20} />,
+  DOT: <FaCoins className="text-pink-500" size={20} />,
+  XRP: <FaCoins className="text-blue-400" size={20} />,
+  AVAX: <FaCoins className="text-red-500" size={20} />,
+  ADA: <FaCoins className="text-blue-600" size={20} />,
+  SOL: <FaCoins className="text-teal-500" size={20} />,
+  BNB: <FaCoins className="text-yellow-400" size={20} />
 };
-
 
 export default function DepositForm() {
   const [step, setStep] = useState(1)
@@ -50,6 +51,28 @@ export default function DepositForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [copiedField, setCopiedField] = useState<string | null>(null)
+  const [balance, setBalance] = useState<number | null>(null)
+  const [balanceLoading, setBalanceLoading] = useState(true)
+
+  // Fetch user balance on component mount
+  useEffect(() => {
+    const fetchBalance = async () => {
+      try {
+        const result = await getUserBalance()
+        if (result.error) {
+          console.error(result.error)
+        } else if (result.balance !== undefined) {
+          setBalance(result.balance)
+        }
+      } catch (err) {
+        console.error('Failed to fetch balance:', err)
+      } finally {
+        setBalanceLoading(false)
+      }
+    }
+    
+    fetchBalance()
+  }, [])
 
   const copyToClipboard = (text: string, field: string) => {
     navigator.clipboard.writeText(text)
@@ -60,6 +83,7 @@ export default function DepositForm() {
   const handleAmountSelect = (selectedAmount: number) => {
     setAmount(selectedAmount)
     setCustomAmount('')
+    setError('')
   }
 
   const handleCustomAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -68,6 +92,7 @@ export default function DepositForm() {
       setCustomAmount(value)
       setAmount(value ? parseInt(value) : null)
     }
+    setError('')
   }
 
   const handleProceed = () => {
@@ -147,9 +172,16 @@ export default function DepositForm() {
 
   return (
     <div className="max-w-md mx-auto bg-white rounded-xl shadow-lg overflow-hidden p-6">
-      <div className="flex items-center justify-center mb-6">
-        <FaCoins className="text-yellow-500 text-3xl mr-2" />
-        <h2 className="text-2xl font-bold text-center">Deposit Cryptocurrency</h2>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center">
+          <FaCoins className="text-yellow-500 text-3xl mr-2" />
+          <h2 className="text-2xl font-bold">Deposit Cryptocurrency</h2>
+        </div>
+        {!balanceLoading && (
+          <div className="bg-blue-50 px-3 py-1 rounded-full text-sm font-medium">
+            Balance: ${balance?.toLocaleString() || '0'}
+          </div>
+        )}
       </div>
       
       <div className="relative h-2 bg-gray-200 rounded-full mb-6">
@@ -195,7 +227,7 @@ export default function DepositForm() {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    {option}
+                    ${option}
                   </motion.button>
                 ))}
               </motion.div>
@@ -245,6 +277,7 @@ export default function DepositForm() {
               className="w-full bg-blue-500 text-white py-3 px-4 rounded-md hover:bg-blue-600 transition-colors flex items-center justify-center"
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.98 }}
+              disabled={!amount || !email}
             >
               Proceed to Payment
               <FaWallet className="ml-2" />
@@ -261,10 +294,15 @@ export default function DepositForm() {
             transition={{ duration: 0.3 }}
             className="space-y-6"
           >
-            <h3 className="text-lg font-medium mb-3 flex items-center">
-              <FaBitcoin className="mr-2 text-orange-500" />
-              Select Cryptocurrency
-            </h3>
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-medium flex items-center">
+                {cryptoIcons[cryptoType || 'BTC']}
+                <span className="ml-2">Select Cryptocurrency</span>
+              </h3>
+              <div className="text-sm font-medium">
+                Amount: ${amount?.toLocaleString()}
+              </div>
+            </div>
             
             <motion.div 
               className="grid grid-cols-2 gap-3"
@@ -313,21 +351,18 @@ export default function DepositForm() {
               </motion.button>
               <motion.button
                 onClick={handleCryptoSelect}
-                disabled={isLoading}
+                disabled={isLoading || !cryptoType}
                 className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors disabled:opacity-50 flex items-center justify-center"
                 whileHover={{ scale: isLoading ? 1 : 1.01 }}
                 whileTap={{ scale: isLoading ? 1 : 0.98 }}
               >
                 {isLoading ? (
-                  <motion.span
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    className="inline-block"
-                  >
-                    ⏳
-                  </motion.span>
+                  <>
+                    <FaSpinner className="animate-spin mr-2" />
+                    Processing...
+                  </>
                 ) : (
-                  <span>Continue</span>
+                  'Continue'
                 )}
               </motion.button>
             </div>
@@ -343,10 +378,15 @@ export default function DepositForm() {
             transition={{ duration: 0.3 }}
             className="space-y-6"
           >
-            <h3 className="text-lg font-medium mb-3 flex items-center">
-              <FaWallet className="mr-2 text-blue-500" />
-              Deposit Instructions
-            </h3>
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-medium flex items-center">
+                <FaWallet className="mr-2 text-blue-500" />
+                Deposit Instructions
+              </h3>
+              <div className="text-sm font-medium">
+                {paymentDetails.amount} {paymentDetails.cryptoType}
+              </div>
+            </div>
             
             <motion.div 
               className="bg-gray-50 p-4 rounded-md border border-gray-200"
@@ -355,9 +395,9 @@ export default function DepositForm() {
             >
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="font-medium">Amount:</span>
-                  <span className="font-semibold">
-                    {paymentDetails.amount} {paymentDetails.cryptoType}
+                  <span className="font-medium">Status:</span>
+                  <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-semibold rounded-full">
+                    Pending
                   </span>
                 </div>
                 
@@ -383,7 +423,7 @@ export default function DepositForm() {
                       )}
                     </motion.button>
                   </div>
-                  <div className="p-2 bg-white rounded-md border border-gray-300 break-all">
+                  <div className="p-2 bg-white rounded-md border border-gray-300 break-all font-mono text-sm">
                     {paymentDetails.walletAddress}
                   </div>
                 </div>
@@ -410,7 +450,7 @@ export default function DepositForm() {
                       )}
                     </motion.button>
                   </div>
-                  <div className="p-2 bg-white rounded-md border border-gray-300">
+                  <div className="p-2 bg-white rounded-md border border-gray-300 font-mono">
                     {paymentDetails.reference}
                   </div>
                 </div>
