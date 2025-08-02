@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, useMemo } from 'react'
 import { 
   AreaChart, Area, BarChart, Bar, LineChart, Line, XAxis, YAxis, 
   CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell 
@@ -15,9 +16,11 @@ import { TbCurrencySolana } from 'react-icons/tb'
 import { getUserBalance } from '@/lib/getUserBalance' 
 import { getUserWalletBalances } from '@/lib/getUserWalletBalances'
 
+const COLORS = ['#FD4A36', '#8884d8', '#FFBB28', '#00C49F']
+
 const CryptoDashboard = () => {
-  const [activeTab, setActiveTab] = useState('portfolio')
-  const [timeRange, setTimeRange] = useState('7d')
+  const [activeTab, setActiveTab] = useState<'portfolio' | 'market' | 'analytics'>('portfolio')
+  const [timeRange, setTimeRange] = useState<'7d' | '1m' | '1y'>('7d')
   const [isLoading, setIsLoading] = useState(false)
   const [darkMode, setDarkMode] = useState(true)
   const [balanceData, setBalanceData] = useState<number>(0)
@@ -35,16 +38,9 @@ const CryptoDashboard = () => {
     XRP: 0.5423,
     USDT: 1.00
   })
-  const [portfolioData, setPortfolioData] = useState([
-    { name: 'BTC', value: 12500, change: 2.4, icon: <FaBitcoin className="text-amber-500" /> },
-    { name: 'ETH', value: 8500, change: -1.2, icon: <FaEthereum className="text-purple-500" /> },
-    { name: 'BNB', value: 3200, change: 0.8, icon: <SiBinance className="text-yellow-500" /> },
-    { name: 'SOL', value: 2800, change: 5.3, icon: <TbCurrencySolana className="text-green-500" /> },
-    { name: 'XRP', value: 1500, change: -0.5, icon: <SiRipple className="text-blue-500" /> },
-    { name: 'USDT', value: 1500, change: 0, icon: <FiDollarSign className="text-green-300" /> },
-  ])
 
-  const priceHistoryData = [
+  // Memoized price history data to prevent unnecessary recalculations
+  const priceHistoryData = useMemo(() => [
     { name: 'Jan', btc: 4000, eth: 2400, sol: 2400 },
     { name: 'Feb', btc: 3000, eth: 1398, sol: 2210 },
     { name: 'Mar', btc: 2000, eth: 9800, sol: 2290 },
@@ -52,19 +48,58 @@ const CryptoDashboard = () => {
     { name: 'May', btc: 1890, eth: 4800, sol: 2181 },
     { name: 'Jun', btc: 2390, eth: 3800, sol: 2500 },
     { name: 'Jul', btc: 3490, eth: 4300, sol: 2100 },
-  ]
+  ], [])
 
-  const pieData = [
+  // Memoized pie data for allocation chart
+  const pieData = useMemo(() => [
     { name: 'BTC', value: 45 },
     { name: 'ETH', value: 25 },
     { name: 'Altcoins', value: 20 },
     { name: 'Stablecoins', value: 10 },
-  ]
+  ], [])
 
-  const COLORS = ['#FD4A36', '#8884d8', '#FFBB28', '#00C49F']
+  // Memoized portfolio data with dependencies
+  const portfolioData = useMemo(() => [
+    { 
+      name: 'BTC', 
+      value: btcBalance * priceData.BTC, 
+      change: 2.4 + (Math.random() * 0.4 - 0.2), 
+      icon: <FaBitcoin className="text-amber-500" /> 
+    },
+    { 
+      name: 'ETH', 
+      value: ethBalance * priceData.ETH, 
+      change: -1.2 + (Math.random() * 0.4 - 0.2), 
+      icon: <FaEthereum className="text-purple-500" /> 
+    },
+    { 
+      name: 'BNB', 
+      value: bnbBalance * priceData.BNB, 
+      change: 0.8 + (Math.random() * 0.4 - 0.2), 
+      icon: <SiBinance className="text-yellow-500" /> 
+    },
+    { 
+      name: 'SOL', 
+      value: solBalance * priceData.SOL, 
+      change: 5.3 + (Math.random() * 0.4 - 0.2), 
+      icon: <TbCurrencySolana className="text-green-500" /> 
+    },
+    { 
+      name: 'XRP', 
+      value: xrpBalance * priceData.XRP, 
+      change: -0.5 + (Math.random() * 0.4 - 0.2), 
+      icon: <SiRipple className="text-blue-500" /> 
+    },
+    { 
+      name: 'USDT', 
+      value: usdtBalance * priceData.USDT, 
+      change: 0, 
+      icon: <FiDollarSign className="text-green-300" /> 
+    },
+  ], [btcBalance, ethBalance, bnbBalance, solBalance, xrpBalance, usdtBalance, priceData])
 
-  // Fetch user balance
-  const fetchBalance = async () => {
+  // Fetch user balance with error handling
+  const fetchBalance = useCallback(async () => {
     setIsLoading(true)
     try {
       const result = await getUserBalance()
@@ -84,9 +119,10 @@ const CryptoDashboard = () => {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
 
-   const simulatePriceChanges = useCallback(() => {
+  // Simulate price changes with useCallback to prevent unnecessary recreations
+  const simulatePriceChanges = useCallback(() => {
     setPriceData(prev => ({
       BTC: prev.BTC * (1 + (Math.random() * 0.02 - 0.01)),
       ETH: prev.ETH * (1 + (Math.random() * 0.02 - 0.01)),
@@ -94,70 +130,51 @@ const CryptoDashboard = () => {
       SOL: prev.SOL * (1 + (Math.random() * 0.02 - 0.01)),
       XRP: prev.XRP * (1 + (Math.random() * 0.02 - 0.01)),
       USDT: 1.00
-    }));
-  
-    setPortfolioData(prev => prev.map(item => ({
-      ...item,
-      change: item.name === 'USDT' ? 0 : Number((item.change + (Math.random() * 0.4 - 0.2)).toFixed(2)),
-      value: item.name === 'BTC' ? btcBalance * priceData.BTC :
-             item.name === 'ETH' ? ethBalance * priceData.ETH :
-             item.name === 'BNB' ? bnbBalance * priceData.BNB :
-             item.name === 'SOL' ? solBalance * priceData.SOL :
-             item.name === 'XRP' ? xrpBalance * priceData.XRP :
-             usdtBalance * priceData.USDT,
-    })));
-  }, [btcBalance, ethBalance, bnbBalance, solBalance, xrpBalance, usdtBalance]);
-  
+    }))
+  }, [])
+
   useEffect(() => {
-    fetchBalance();  
-    
-     const priceInterval = setInterval(() => {
-      simulatePriceChanges();
-    }, 2000);  
-  
-    return () => clearInterval(priceInterval);
-  }, [simulatePriceChanges]);
-
-  // Calculate totals
-  const totalBalance = portfolioData.reduce((sum, item) => sum + item.value, 0)
-  const totalProfit = portfolioData.reduce((sum, item) => sum + (item.value * (item.change / 100)), 0)
-
-  const refreshData = () => {
-    setIsLoading(true)
     fetchBalance()
-    setTimeout(() => setIsLoading(false), 1000)
-  }
+    
+    const priceInterval = setInterval(simulatePriceChanges, 5000) // Reduced frequency from 2s to 5s
+    
+    return () => clearInterval(priceInterval)
+  }, [fetchBalance, simulatePriceChanges])
 
-  // Format currency
-  const formatCurrency = (value: number) => {
+  // Memoized calculations for totals
+  const { totalBalance, totalProfit } = useMemo(() => {
+    const balance = portfolioData.reduce((sum, item) => sum + item.value, 0)
+    const profit = portfolioData.reduce((sum, item) => sum + (item.value * (item.change / 100)), 0)
+    return { totalBalance: balance, totalProfit: profit }
+  }, [portfolioData])
+
+  const refreshData = useCallback(() => {
+    setIsLoading(true)
+    fetchBalance().finally(() => setIsLoading(false))
+  }, [fetchBalance])
+
+  // Format currency with memoization
+  const formatCurrency = useCallback((value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     }).format(value)
-  }
+  }, [])
 
-  // Format crypto amount
-  const formatCrypto = (value: number) => {
+  // Format crypto amount with memoization
+  const formatCrypto = useCallback((value: number) => {
     return value.toFixed(8)
-  }
+  }, [])
 
-  // Get asset price
-  const getAssetPrice = (asset: string) => {
-    switch (asset) {
-      case 'BTC': return priceData.BTC
-      case 'ETH': return priceData.ETH
-      case 'BNB': return priceData.BNB
-      case 'SOL': return priceData.SOL
-      case 'XRP': return priceData.XRP
-      case 'USDT': return priceData.USDT
-      default: return 0
-    }
-  }
+  // Get asset price with memoization
+  const getAssetPrice = useCallback((asset: string) => {
+    return priceData[asset as keyof typeof priceData] || 0
+  }, [priceData])
 
-  // Get asset balance
-  const getAssetBalance = (asset: string) => {
+  // Get asset balance with memoization
+  const getAssetBalance = useCallback((asset: string) => {
     switch (asset) {
       case 'BTC': return btcBalance
       case 'ETH': return ethBalance
@@ -167,7 +184,28 @@ const CryptoDashboard = () => {
       case 'USDT': return usdtBalance
       default: return 0
     }
-  }
+  }, [btcBalance, ethBalance, bnbBalance, solBalance, xrpBalance, usdtBalance])
+
+  // Memoized tabs configuration
+  const tabs = useMemo(() => [
+    { id: 'portfolio', label: 'Portfolio' },
+    { id: 'market', label: 'Market' },
+    { id: 'analytics', label: 'Analytics' }
+  ], [])
+
+  // Memoized watchlist data
+  const watchlistData = useMemo(() => [
+    { name: 'DOGE', icon: <SiDogecoin className="text-yellow-500" />, price: 0.1234, change: 8.2 },
+    { name: 'LTC', icon: <SiLitecoin className="text-gray-400" />, price: 78.56, change: -1.3 },
+    { name: 'DOT', icon: <div className="text-pink-500">●</div>, price: 6.78, change: 2.1 },
+  ], [])
+
+  // Memoized recent activity data
+  const recentActivityData = useMemo(() => [
+    { type: 'buy', asset: 'BTC', amount: 0.005, value: 312.72, time: '2 mins ago' },
+    { type: 'sell', asset: 'ETH', amount: 0.42, value: 1437.05, time: '1 hour ago' },
+    { type: 'swap', asset: 'USDT to SOL', amount: 500, value: 3.5, time: '5 hours ago' },
+  ], [])
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
@@ -185,14 +223,17 @@ const CryptoDashboard = () => {
             <button 
               onClick={() => setDarkMode(!darkMode)}
               className={`p-2 rounded-full ${darkMode ? 'bg-gray-800 text-yellow-400' : 'bg-gray-200 text-gray-700'}`}
+              aria-label="Toggle dark mode"
             >
               {darkMode ? '☀️' : '🌙'}
             </button>
             <button 
               onClick={refreshData}
-              className={`p-2 rounded-full ${darkMode ? 'bg-gray-800' : 'bg-gray-200'} ${isLoading ? 'animate-spin' : ''}`}
+              className={`p-2 rounded-full ${darkMode ? 'bg-gray-800' : 'bg-gray-200'}`}
+              disabled={isLoading}
+              aria-label="Refresh data"
             >
-              <FiRefreshCw className={darkMode ? 'text-white' : 'text-gray-700'} />
+              <FiRefreshCw className={`${darkMode ? 'text-white' : 'text-gray-700'} ${isLoading ? 'animate-spin' : ''}`} />
             </button>
           </div>
         </motion.div>
@@ -208,14 +249,10 @@ const CryptoDashboard = () => {
               <div>
                 <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total Balance</p>
                 <h2 className="text-2xl font-bold mt-1">
-  {isLoading || typeof balanceData !== 'number'
-    ? '...'
-    : new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 2
-      }).format(balanceData)}
-</h2>
+                  {isLoading || typeof balanceData !== 'number'
+                    ? '...'
+                    : formatCurrency(balanceData)}
+                </h2>
               </div>
               <div className={`p-3 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
                 <FiDollarSign className="text-[#FD4A36]" size={20} />
@@ -293,17 +330,17 @@ const CryptoDashboard = () => {
 
         {/* Tabs */}
         <div className="flex space-x-2 mb-6 border-b border-gray-700">
-          {['portfolio', 'market', 'analytics'].map((tab) => (
+          {tabs.map((tab) => (
             <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
               className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
-                activeTab === tab 
+                activeTab === tab.id 
                   ? `${darkMode ? 'bg-[#FD4A36] text-white' : 'bg-[#FD4A36] text-white'}`
                   : `${darkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}`
               }`}
             >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              {tab.label}
             </button>
           ))}
         </div>
@@ -331,7 +368,7 @@ const CryptoDashboard = () => {
                         {['7d', '1m', '1y'].map((range) => (
                           <button 
                             key={range}
-                            onClick={() => setTimeRange(range)} 
+                            onClick={() => setTimeRange(range as any)} 
                             className={`text-xs px-2 py-1 rounded ${
                               timeRange === range 
                                 ? 'bg-[#FD4A36] text-white' 
@@ -397,7 +434,7 @@ const CryptoDashboard = () => {
                         <select 
                           className={`text-sm rounded ${darkMode ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-900'} px-2 py-1`}
                           value={timeRange}
-                          onChange={(e) => setTimeRange(e.target.value)}
+                          onChange={(e) => setTimeRange(e.target.value as any)}
                         >
                           <option value="7d">Last 7 days</option>
                           <option value="1m">Last month</option>
@@ -476,10 +513,10 @@ const CryptoDashboard = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {portfolioData.map((asset, index) => (
+                        {portfolioData.map((asset) => (
                           <tr 
-                            key={index} 
-                            className={`${index !== portfolioData.length - 1 ? (darkMode ? 'border-b border-gray-700' : 'border-b border-gray-200') : ''}`}
+                            key={asset.name} 
+                            className={`${darkMode ? 'border-b border-gray-700' : 'border-b border-gray-200'}`}
                           >
                             <td className="py-3 px-4">
                               <div className="flex items-center">
@@ -547,7 +584,7 @@ const CryptoDashboard = () => {
                       <select 
                         className={`text-sm rounded ${darkMode ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-900'} px-2 py-1`}
                         value={timeRange}
-                        onChange={(e) => setTimeRange(e.target.value)}
+                        onChange={(e) => setTimeRange(e.target.value as any)}
                       >
                         <option value="7d">Top Gainers</option>
                         <option value="1m">Top Losers</option>
@@ -591,9 +628,9 @@ const CryptoDashboard = () => {
                   >
                     <h3 className="font-semibold mb-4">Top Gainers</h3>
                     <div className="space-y-4">
-                      {portfolioData.filter(c => c.change > 0).map((crypto, index) => (
+                      {portfolioData.filter(c => c.change > 0).map((crypto) => (
                         <div 
-                          key={index} 
+                          key={crypto.name} 
                           className={`flex items-center justify-between p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}
                         >
                           <div className="flex items-center">
@@ -623,9 +660,9 @@ const CryptoDashboard = () => {
                   >
                     <h3 className="font-semibold mb-4">Top Losers</h3>
                     <div className="space-y-4">
-                      {portfolioData.filter(c => c.change < 0).map((crypto, index) => (
+                      {portfolioData.filter(c => c.change < 0).map((crypto) => (
                         <div 
-                          key={index} 
+                          key={crypto.name} 
                           className={`flex items-center justify-between p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}
                         >
                           <div className="flex items-center">
@@ -738,13 +775,9 @@ const CryptoDashboard = () => {
                 >
                   <h3 className="font-semibold mb-4">Your Watchlist</h3>
                   <div className="space-y-3">
-                    {[
-                      { name: 'DOGE', icon: <SiDogecoin className="text-yellow-500" />, price: 0.1234, change: 8.2 },
-                      { name: 'LTC', icon: <SiLitecoin className="text-gray-400" />, price: 78.56, change: -1.3 },
-                      { name: 'DOT', icon: <div className="text-pink-500">●</div>, price: 6.78, change: 2.1 },
-                    ].map((item, index) => (
+                    {watchlistData.map((item) => (
                       <div 
-                        key={index} 
+                        key={item.name} 
                         className={`flex items-center justify-between p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}
                       >
                         <div className="flex items-center">
@@ -778,11 +811,7 @@ const CryptoDashboard = () => {
                 >
                   <h3 className="font-semibold mb-4">Recent Activity</h3>
                   <div className="space-y-4">
-                    {[
-                      { type: 'buy', asset: 'BTC', amount: 0.005, value: 312.72, time: '2 mins ago' },
-                      { type: 'sell', asset: 'ETH', amount: 0.42, value: 1437.05, time: '1 hour ago' },
-                      { type: 'swap', asset: 'USDT to SOL', amount: 500, value: 3.5, time: '5 hours ago' },
-                    ].map((activity, index) => (
+                    {recentActivityData.map((activity, index) => (
                       <div key={index} className="flex items-start">
                         <div className={`p-2 rounded-full mr-3 ${
                           activity.type === 'buy' ? 'bg-green-500 bg-opacity-20 text-green-500' : 
@@ -827,4 +856,4 @@ const CryptoDashboard = () => {
   )
 }
 
-export default CryptoDashboard;
+export default CryptoDashboard
