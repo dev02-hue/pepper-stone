@@ -214,24 +214,24 @@ export async function getUserInvestments(): Promise<{ data?: UserInvestment[]; e
   
       console.log('Fetching investments for userId:', userId);
       const { data, error } = await supabase
-        .from('tradeuser_investments')
-        .select(`
-          id,
-          plan_id,
-          amount,
-          expected_return,
-          start_date,
-          end_date,
-          status,
-          next_payout_date,
-          total_payouts,
-          tradeinvestment_plans (
-            title,
-            percentage
-          )
-        `)
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false });
+      .from('tradeuser_investments')
+      .select(`
+        id,
+        plan_id,
+        amount,
+        expected_return,
+        start_date,
+        end_date,
+        status,
+        next_payout_date,
+        total_payouts,
+        tradeinvestment_plans!tradeuser_investments_plan_id_fkey (
+          title,
+          percentage
+        )
+      `)
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
   
       if (error) {
         console.log('Error fetching investments:', error);
