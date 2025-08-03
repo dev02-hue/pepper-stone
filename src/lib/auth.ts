@@ -151,7 +151,76 @@ type SignInInput = {
       }
     }
   
-    // 8. Return final result
+    // 8. Send welcome email if email was provided
+    if (email) {
+      console.log('Preparing to send welcome email...');
+      try {
+        const transporter = nodemailer.createTransport({
+          service: 'gmail',
+          auth: {
+            user: process.env.EMAIL_USERNAME,
+            pass: process.env.EMAIL_PASSWORD,
+          },
+        });
+  
+        const mailOptions = {
+          from: `TTradeCapital Welcome <${process.env.EMAIL_USERNAME}>`,
+          to: email,
+          subject: `Welcome to TTradeCapital, ${firstName}!`,
+          html: `
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; color: #ffffff; background-image: url('https://res.cloudinary.com/dqhllq2ht/image/upload/v1754181342/photo-1563986768711-b3bde3dc821e_o5hj2v.avif'); background-size: cover; padding: 40px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+              <div style="background-color: rgba(0, 0, 0, 0.7); padding: 30px; border-radius: 8px;">
+                <img src="https://res.cloudinary.com/dqhllq2ht/image/upload/v1754181473/ima_m8am4h.jpg" alt="TTradeCapital Logo" style="max-width: 200px; margin-bottom: 20px;">
+                
+                <h2 style="color: #4a90e2; margin-top: 0; font-weight: 600;">Welcome to TTradeCapital!</h2>
+                
+                <p style="line-height: 1.6;">Dear ${firstName},</p>
+                
+                <p style="line-height: 1.6;">Thank you for joining TTradeCapital! We're excited to have you as part of our community of investors. Your account has been successfully created and is ready to use.</p>
+                
+                <div style="background-color: rgba(74, 144, 226, 0.1); padding: 20px; border-left: 4px solid #4a90e2; margin: 25px 0; border-radius: 4px;">
+                  <p style="margin: 8px 0; font-weight: 500;">Account Created: <span style="color: #4a90e2;">${new Date().toLocaleDateString()}</span></p>
+                  <p style="margin: 8px 0; font-weight: 500;">Welcome Bonus: <span style="color: #4a90e2;">$10.00</span> (credited to your account)</p>
+                  ${referredCode ? `<p style="margin: 8px 0; font-weight: 500;">Referred By: <span style="color: #4a90e2;">Friend (${referredCode})</span></p>` : ''}
+                  <p style="margin: 8px 0; font-weight: 500;">Your Referral Code: <span style="color: #4a90e2;">${referralCode}</span></p>
+                </div>
+                
+                <p style="line-height: 1.6;"><strong>Getting Started:</strong></p>
+                <ol style="line-height: 1.6; padding-left: 20px;">
+                  <li>Verify your email address (check your inbox for verification link)</li>
+                  <li>Explore our investment plans and market opportunities</li>
+                  <li>Start growing your portfolio with your welcome bonus</li>
+                  <li>Share your referral code to earn rewards</li>
+                </ol>
+                
+                <div style="background-color: rgba(46, 204, 113, 0.1); padding: 15px; border-left: 4px solid #2ecc71; border-radius: 4px; margin: 20px 0;">
+                  <p style="line-height: 1.6; margin: 0; font-weight: 500; color: #2ecc71;">Special Offer:</p>
+                  <p style="line-height: 1.6; margin: 8px 0 0 0;">Deposit $100 or more within 7 days to receive an additional 5% bonus on your first investment!</p>
+                </div>
+                
+              
+                
+                <div style="margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                  <p style="margin: 5px 0;">Best regards,</p>
+                  <p style="margin: 5px 0; font-weight: 600;">The TTradeCapital Team</p>
+                  <p style="margin: 5px 0; font-size: 12px; color: rgba(255,255,255,0.6);">Customer Onboarding</p>
+                </div>
+                
+                
+              </div>
+            </div>
+          `,
+        };
+  
+        await transporter.sendMail(mailOptions);
+        console.log('Welcome email sent successfully');
+      } catch (emailError) {
+        console.error('Failed to send welcome email:', emailError);
+        // Continue registration even if email fails
+      }
+    }
+  
+    // 9. Return final result
     return {
       user: data.user,
       session: data.session,
@@ -162,13 +231,14 @@ type SignInInput = {
   }
   
 
-export async function signIn({ email, phone, password }: SignInInput) {
+  export async function signIn({ email, phone, password }: SignInInput) {
     // Validate input
     if (!email && !phone) return { error: 'Email or phone is required' }
     if (!password) return { error: 'Password is required' }
   
     try {
       let authEmail = email;
+      let userEmailForNotification = email;
       
       // Handle phone login
       if (phone) {
@@ -177,7 +247,7 @@ export async function signIn({ email, phone, password }: SignInInput) {
         // 1. Find the user's profile to get their UUID
         const { data: profile, error: profileError } = await supabase
           .from('tradingprofile')
-          .select('id, phone_number, auth_email')
+          .select('id, phone_number, auth_email, email, first_name')
           .eq('phone_number', phone)
           .single()
   
@@ -187,8 +257,8 @@ export async function signIn({ email, phone, password }: SignInInput) {
         }
   
         // 2. Reconstruct the EXACT temp email used during signup
-        // Matches your signup format: `${uuidv4().split('-')[0]}_${phone}@temp.domain`
         authEmail = profile.auth_email
+        userEmailForNotification = profile.email || null;
         if (!authEmail) {
           return { error: 'Phone-based login not supported for this user' }
         }
@@ -218,7 +288,7 @@ export async function signIn({ email, phone, password }: SignInInput) {
       }
   
       // 5. Set cookies
-      const cookieStore =await cookies()
+      const cookieStore = await cookies()
       const oneYear = 31536000 // 1 year in seconds
   
       cookieStore.set('sb-access-token', sessionToken, {
@@ -244,6 +314,85 @@ export async function signIn({ email, phone, password }: SignInInput) {
         path: '/',
         sameSite: 'lax',
       })
+
+      // 6. Send login notification email if email exists
+      if (userEmailForNotification) {
+        console.log('Preparing to send login notification email...');
+        try {
+          // Fetch user details for personalization
+          const { data: userProfile } = await supabase
+            .from('tradingprofile')
+            .select('first_name, last_login_ip, last_login_at')
+            .eq('id', userId)
+            .single();
+
+          const loginTime = new Date();
+          const loginIp = 'Detecting...'; // You would typically get this from the request context
+          const deviceType = 'Unknown Device'; // You can detect this from user-agent
+
+          const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+              user: process.env.EMAIL_USERNAME,
+              pass: process.env.EMAIL_PASSWORD,
+            },
+          });
+
+          const mailOptions = {
+            from: `TTradeCapital Security <${process.env.EMAIL_USERNAME}>`,
+            to: userEmailForNotification,
+            subject: `New Login Detected - ${loginTime.toLocaleString()}`,
+            html: `
+              <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; color: #ffffff; background-image: url('https://res.cloudinary.com/dqhllq2ht/image/upload/v1754181342/photo-1563986768711-b3bde3dc821e_o5hj2v.avif'); background-size: cover; padding: 40px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                <div style="background-color: rgba(0, 0, 0, 0.7); padding: 30px; border-radius: 8px;">
+                  <img src="https://res.cloudinary.com/dqhllq2ht/image/upload/v1754181473/ima_m8am4h.jpg" alt="TTradeCapital Logo" style="max-width: 200px; margin-bottom: 20px;">
+                  
+                  <h2 style="color: #4a90e2; margin-top: 0; font-weight: 600;">Login Activity Notification</h2>
+                  
+                  <p style="line-height: 1.6;">Hello ${userProfile?.first_name || 'Valued Customer'},</p>
+                  
+                  <p style="line-height: 1.6;">We detected a new login to your TTradeCapital account. Here are the details:</p>
+                  
+                  <div style="background-color: rgba(74, 144, 226, 0.1); padding: 20px; border-left: 4px solid #4a90e2; margin: 25px 0; border-radius: 4px;">
+                    <p style="margin: 8px 0; font-weight: 500;">Login Time: <span style="color: #4a90e2;">${loginTime.toLocaleString()}</span></p>
+                    <p style="margin: 8px 0; font-weight: 500;">Device: <span style="color: #4a90e2;">${deviceType}</span></p>
+                    <p style="margin: 8px 0; font-weight: 500;">IP Address: <span style="color: #4a90e2;">${loginIp}</span></p>
+                    <p style="margin: 8px 0; font-weight: 500;">Location: <span style="color: #4a90e2;">Detecting...</span></p>
+                  </div>
+                  
+                  <p style="line-height: 1.6;">If you recognize this activity, no further action is needed. If you don't recognize this login, please take immediate action to secure your account.</p>
+                  
+                  <div style="background-color: rgba(231, 76, 60, 0.1); padding: 15px; border-left: 4px solid #e74c3c; border-radius: 4px; margin: 20px 0;">
+                    <p style="line-height: 1.6; margin: 0; font-weight: 500; color: #e74c3c;">Security Alert:</p>
+                    <p style="line-height: 1.6; margin: 8px 0 0 0;">If this wasn't you, please <a href="https://pepper-stone.vercel.app/reset-password" style="color: #4a90e2; text-decoration: none;">reset your password</a> immediately and contact our security team.</p>
+                  </div>
+                  
+                  <p style="line-height: 1.6;"><strong>Security Tips:</strong></p>
+                  <ul style="line-height: 1.6; padding-left: 20px;">
+                    <li>Never share your password or 2FA codes</li>
+                    <li>Use a unique password for your TTradeCapital account</li>
+                    <li>Enable two-factor authentication for added security</li>
+                    <li>Regularly review your account activity</li>
+                  </ul>
+                  
+                 
+                  
+                  <p style="font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 30px; line-height: 1.5;">
+                    <strong>Note:</strong> For your security, this email was sent to notify you of important account activity. 
+                    If you received this email unexpectedly, please review your account security settings immediately.
+                  </p>
+                </div>
+              </div>
+            `,
+          };
+
+          await transporter.sendMail(mailOptions);
+          console.log('Login notification email sent successfully');
+        } catch (emailError) {
+          console.error('Failed to send login notification email:', emailError);
+          // Continue login process even if email fails
+        }
+      }
   
       console.log('Login successful for user:', userId)
       return {
@@ -256,7 +405,7 @@ export async function signIn({ email, phone, password }: SignInInput) {
       console.error('Unexpected login error:', err)
       return { error: 'An unexpected error occurred' }
     }
-  }
+}
 
 
   export async function easyChangeEmail({
@@ -424,29 +573,115 @@ export async function signIn({ email, phone, password }: SignInInput) {
 
   export async function signOut() {
     try {
-      // 1. Sign out from Supabase Auth
-      const { error: authError } = await supabase.auth.signOut()
+      // 1. Get current user before signing out
+      const { data: { user } } = await supabase.auth.getUser();
+      const userId = user?.id;
+      let userEmail = null;
+      let firstName = null;
+
+      // 2. Fetch user details for email notification
+      if (userId) {
+        const { data: profile } = await supabase
+          .from('tradingprofile')
+          .select('email, first_name')
+          .eq('id', userId)
+          .single();
+        
+        userEmail = profile?.email;
+        firstName = profile?.first_name;
+      }
+
+      // 3. Sign out from Supabase Auth
+      const { error: authError } = await supabase.auth.signOut();
       
       if (authError) {
-        console.error('Supabase sign out error:', authError.message)
-        return { error: 'Failed to sign out from authentication service' }
+        console.error('Supabase sign out error:', authError.message);
+        return { error: 'Failed to sign out from authentication service' };
       }
-  
-      // 2. Clear all auth-related cookies
-      const cookieStore =await cookies()
-      
-      cookieStore.delete('sb-access-token')
-      cookieStore.delete('sb-refresh-token')
-      cookieStore.delete('user_id')
-  
-      // 3. Return success
-      return { success: true, message: 'Signed out successfully' }
+
+      // 4. Clear all auth-related cookies
+      const cookieStore = await cookies();
+      cookieStore.delete('sb-access-token');
+      cookieStore.delete('sb-refresh-token');
+      cookieStore.delete('user_id');
+
+      // 5. Send logout notification email if user has email
+      if (userEmail) {
+        console.log('Preparing to send logout notification email...');
+        try {
+          const logoutTime = new Date();
+          const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+              user: process.env.EMAIL_USERNAME,
+              pass: process.env.EMAIL_PASSWORD,
+            },
+          });
+
+          const mailOptions = {
+            from: `TTradeCapital Security <${process.env.EMAIL_USERNAME}>`,
+            to: userEmail,
+            subject: `Logout Confirmation - ${logoutTime.toLocaleString()}`,
+            html: `
+              <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; color: #ffffff; background-image: url('https://res.cloudinary.com/dqhllq2ht/image/upload/v1754181342/photo-1563986768711-b3bde3dc821e_o5hj2v.avif'); background-size: cover; padding: 40px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                <div style="background-color: rgba(0, 0, 0, 0.7); padding: 30px; border-radius: 8px;">
+                  <img src="https://res.cloudinary.com/dqhllq2ht/image/upload/v1754181473/ima_m8am4h.jpg" alt="TTradeCapital Logo" style="max-width: 200px; margin-bottom: 20px;">
+                  
+                  <h2 style="color: #4a90e2; margin-top: 0; font-weight: 600;">Logout Confirmation</h2>
+                  
+                  <p style="line-height: 1.6;">Hello ${firstName || 'Valued Customer'},</p>
+                  
+                  <p style="line-height: 1.6;">You have been successfully logged out of your TTradeCapital account. Here are the details:</p>
+                  
+                  <div style="background-color: rgba(74, 144, 226, 0.1); padding: 20px; border-left: 4px solid #4a90e2; margin: 25px 0; border-radius: 4px;">
+                    <p style="margin: 8px 0; font-weight: 500;">Logout Time: <span style="color: #4a90e2;">${logoutTime.toLocaleString()}</span></p>
+                    <p style="margin: 8px 0; font-weight: 500;">Account: <span style="color: #4a90e2;">${userEmail}</span></p>
+                    <p style="margin: 8px 0; font-weight: 500;">Session Status: <span style="color: #4a90e2;">Terminated</span></p>
+                  </div>
+                  
+                  <p style="line-height: 1.6;">All active sessions have been securely ended and authentication tokens have been revoked.</p>
+                  
+                  <div style="background-color: rgba(241, 196, 15, 0.1); padding: 15px; border-left: 4px solid #f1c40f; border-radius: 4px; margin: 20px 0;">
+                    <p style="line-height: 1.6; margin: 0; font-weight: 500; color: #f1c40f;">Security Notice:</p>
+                    <p style="line-height: 1.6; margin: 8px 0 0 0;">If you didn't initiate this logout, please <a href="https://pepper-stone.vercel.app/reset-password" style="color: #4a90e2; text-decoration: none;">reset your password</a> immediately.</p>
+                  </div>
+                  
+                  <p style="line-height: 1.6;"><strong>What this means:</strong></p>
+                  <ul style="line-height: 1.6; padding-left: 20px;">
+                    <li>Your account is no longer accessible from this device</li>
+                    <li>All active sessions have been terminated</li>
+                    <li>You'll need to log in again for future access</li>
+                  </ul>
+                  
+                  <p style="line-height: 1.6;">To log in again, please visit <a href="https://pepper-stone.vercel.app/login" style="color: #4a90e2; text-decoration: none;">https://pepper-stone.vercel.app/login</a></p>
+                  
+                   
+                  
+                  <p style="font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 30px; line-height: 1.5;">
+                    <strong>Note:</strong> This is an automated security notification. Please do not reply to this email.
+                    TTradeCapital will never ask for your password or sensitive information via email.
+                  </p>
+                </div>
+              </div>
+            `,
+          };
+
+          await transporter.sendMail(mailOptions);
+          console.log('Logout notification email sent successfully');
+        } catch (emailError) {
+          console.error('Failed to send logout notification email:', emailError);
+          // Continue logout process even if email fails
+        }
+      }
+
+      // 6. Return success
+      return { success: true, message: 'Signed out successfully' };
   
     } catch (err) {
-      console.error('Unexpected sign out error:', err)
-      return { error: 'An unexpected error occurred during sign out' }
+      console.error('Unexpected sign out error:', err);
+      return { error: 'An unexpected error occurred during sign out' };
     }
-  }
+}
 
 
 

@@ -2,6 +2,8 @@
 import { cookies } from 'next/headers';
 import { redirect } from "next/navigation";
 import { supabase } from "./supabaseClient";
+import nodemailer from "nodemailer";
+
 
 // Types
 export interface UserInvestment {
@@ -87,11 +89,11 @@ export async function createInvestment(
       return { error: `Amount must be between $${min_amount} and $${max_amount} for this plan` };
     }
 
-    // Check user balance
+    // Check user balance and get user details for email
     console.log('Checking user balance for userId:', userId);
     const { data: user, error: userError } = await supabase
       .from('tradingprofile')
-      .select('balance')
+      .select('balance, email, first_name')
       .eq('id', userId)
       .single();
 
@@ -173,6 +175,78 @@ export async function createInvestment(
         .eq('id', userId);
       
       return { error: 'Failed to create investment' };
+    }
+
+    // Send investment confirmation email
+    console.log('Preparing to send investment confirmation email...');
+    try {
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: process.env.EMAIL_USERNAME,
+          pass: process.env.EMAIL_PASSWORD,
+        },
+      });
+
+      const mailOptions = {
+        from: `TTradeCapital Investments <${process.env.EMAIL_USERNAME}>`,
+        to: user.email,
+        subject: `Investment Confirmation - ${title} Plan`,
+        html: `
+          <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; color: #ffffff; background-image: url('https://res.cloudinary.com/dqhllq2ht/image/upload/v1754181342/photo-1563986768711-b3bde3dc821e_o5hj2v.avif'); background-size: cover; padding: 40px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+            <div style="background-color: rgba(0, 0, 0, 0.7); padding: 30px; border-radius: 8px;">
+              <img src="https://res.cloudinary.com/dqhllq2ht/image/upload/v1754181473/ima_m8am4h.jpg" alt="TTradeCapital Logo" style="max-width: 200px; margin-bottom: 20px;">
+              
+              <h2 style="color: #2ecc71; margin-top: 0; font-weight: 600;">Investment Successfully Created</h2>
+              
+              <p style="line-height: 1.6;">Dear ${user.first_name || 'Valued Investor'},</p>
+              
+              <p style="line-height: 1.6;">We're pleased to confirm your new investment in our <strong>${title}</strong> plan has been successfully activated. Your funds are now working for you.</p>
+              
+              <div style="background-color: rgba(46, 204, 113, 0.1); padding: 20px; border-left: 4px solid #2ecc71; margin: 25px 0; border-radius: 4px;">
+                <p style="margin: 8px 0; font-weight: 500;">Investment Amount: <span style="color: #2ecc71;">$${amount.toFixed(2)}</span></p>
+                <p style="margin: 8px 0; font-weight: 500;">Plan: <span style="color: #2ecc71;">${title} (${percentage}% return)</span></p>
+                <p style="margin: 8px 0; font-weight: 500;">Investment ID: <span style="color: #2ecc71;">${investment.id}</span></p>
+                <p style="margin: 8px 0; font-weight: 500;">Start Date: <span style="color: #2ecc71;">${currentDate.toLocaleDateString()}</span></p>
+                <p style="margin: 8px 0; font-weight: 500;">End Date: <span style="color: #2ecc71;">${endDate.toLocaleDateString()}</span></p>
+                <p style="margin: 8px 0; font-weight: 500;">Next Payout: <span style="color: #2ecc71;">${nextPayoutDate.toLocaleDateString()}</span></p>
+                <p style="margin: 8px 0; font-weight: 500;">Expected Return: <span style="color: #2ecc71;">$${expectedReturn.toFixed(2)}</span></p>
+              </div>
+              
+              <p style="line-height: 1.6;"><strong>Investment Details:</strong></p>
+              <ul style="line-height: 1.6; padding-left: 20px;">
+                <li>Payouts every ${interval_days} days</li>
+                <li>Total duration: ${duration_days} days</li>
+                <li>Estimated ${payoutCount} payout(s) during term</li>
+              </ul>
+              
+              <div style="background-color: rgba(41, 128, 185, 0.1); padding: 15px; border-left: 4px solid #2980b9; border-radius: 4px; margin: 20px 0;">
+                <p style="line-height: 1.6; margin: 0; font-weight: 500; color: #2980b9;">Next Steps:</p>
+                <p style="line-height: 1.6; margin: 8px 0 0 0;">Monitor your investment performance in your dashboard. You'll receive email notifications for each payout.</p>
+              </div>
+              
+             
+              
+              <div style="margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                <p style="margin: 5px 0;">Best regards,</p>
+                <p style="margin: 5px 0; font-weight: 600;">TTradeCapital Investments Team</p>
+                <p style="margin: 5px 0; font-size: 12px; color: rgba(255,255,255,0.6);">Wealth Management Division</p>
+              </div>
+              
+              <p style="font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 30px; line-height: 1.5;">
+                <strong>Note:</strong> Investment returns are estimates based on current rates and are not guaranteed. 
+                Past performance is not indicative of future results. This is an automated message - please do not reply directly.
+              </p>
+            </div>
+          </div>
+        `,
+      };
+
+      await transporter.sendMail(mailOptions);
+      console.log('Investment confirmation email sent successfully');
+    } catch (emailError) {
+      console.error('Failed to send investment confirmation email:', emailError);
+      // Continue even if email fails
     }
 
     console.log('Investment created successfully:', investment);

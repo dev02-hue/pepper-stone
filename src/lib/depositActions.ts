@@ -133,58 +133,85 @@ export async function approveCryptoDeposit(transactionUuid: string) {
     BNB: 'binancecoin',
   };
 
-  // 1. Fetch transaction
-  console.log('[2] Fetching transaction from database...');
-  const { data: transaction, error: fetchError } = await supabase
-    .from('crypto_transactions')
-    .select('*')
-    .eq('id', transactionUuid)
-    .single();
-
-  if (fetchError || !transaction) {
-    console.error('[ERROR] Transaction fetch failed:', fetchError);
-    return { error: 'Transaction not found' };
-  }
-
-  console.log('[3] Transaction found:', {
-    id: transaction.id,
-    crypto_type: transaction.crypto_type,
-    amount: transaction.amount,
-    status: transaction.status
-  });
-
-  if (transaction.status !== 'pending') {
-    console.log('[WARNING] Transaction already processed with status:', transaction.status);
-    return {
-      error: 'Transaction already processed',
-      currentStatus: transaction.status,
-    };
-  }
-
-  const cryptoType = transaction.crypto_type;
-  console.log('[4] Processing crypto type:', cryptoType);
-
-  const walletColumn = CRYPTO_TO_PROFILE_COLUMN[cryptoType];
-  if (!walletColumn) {
-    console.error('[ERROR] Unsupported crypto type:', cryptoType);
-    return { error: 'Unsupported crypto type' };
-  }
-  console.log('[5] Wallet column:', walletColumn);
-
-  // 2. Fetch user's trading profile
-  console.log('[6] Fetching trading profile for user:', transaction.user_id);
-  const { data: profile, error: profileError } = await supabase
-    .from('tradingprofile')
-    .select('*')
-    .eq('id', transaction.user_id)
-    .single();
-
-  if (profileError || !profile) {
-    console.error('[ERROR] Trading profile not found:', profileError);
-    return { error: 'User trading profile not found' };
+  // Helper function to fetch with retry logic
+  async function fetchWithRetry(url: string, options = {}, retries = 3, delay = 1000): Promise<Response> {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+      
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeout);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response;
+    } catch (error) {
+      if (retries > 0) {
+        console.log(`[RETRY] Attempts remaining: ${retries} for URL: ${url}`);
+        await new Promise(res => setTimeout(res, delay));
+        return fetchWithRetry(url, options, retries - 1, delay * 1.5); // exponential backoff
+      }
+      throw error;
+    }
   }
 
   try {
+    // 1. Fetch transaction
+    console.log('[2] Fetching transaction from database...');
+    const { data: transaction, error: fetchError } = await supabase
+      .from('crypto_transactions')
+      .select('*')
+      .eq('id', transactionUuid)
+      .single();
+
+    if (fetchError || !transaction) {
+      console.error('[ERROR] Transaction fetch failed:', fetchError);
+      return { error: 'Transaction not found' };
+    }
+
+    console.log('[3] Transaction found:', {
+      id: transaction.id,
+      crypto_type: transaction.crypto_type,
+      amount: transaction.amount,
+      status: transaction.status
+    });
+
+    if (transaction.status !== 'pending') {
+      console.log('[WARNING] Transaction already processed with status:', transaction.status);
+      return {
+        error: 'Transaction already processed',
+        currentStatus: transaction.status,
+      };
+    }
+
+    const cryptoType = transaction.crypto_type;
+    console.log('[4] Processing crypto type:', cryptoType);
+
+    const walletColumn = CRYPTO_TO_PROFILE_COLUMN[cryptoType];
+    if (!walletColumn) {
+      console.error('[ERROR] Unsupported crypto type:', cryptoType);
+      return { error: 'Unsupported crypto type' };
+    }
+    console.log('[5] Wallet column:', walletColumn);
+
+    // 2. Fetch user's trading profile
+    console.log('[6] Fetching trading profile for user:', transaction.user_id);
+    const { data: profile, error: profileError } = await supabase
+      .from('tradingprofile')
+      .select('*')
+      .eq('id', transaction.user_id)
+      .single();
+
+    if (profileError || !profile) {
+      console.error('[ERROR] Trading profile not found:', profileError);
+      return { error: 'User trading profile not found' };
+    }
+
     // 3. Convert USD amount to crypto amount
     const coinGeckoId = CRYPTO_TO_COINGECKO_ID[cryptoType];
     console.log('[7] CoinGecko ID:', coinGeckoId, 'for crypto:', cryptoType);
@@ -194,19 +221,25 @@ export async function approveCryptoDeposit(transactionUuid: string) {
       return { error: 'Unsupported crypto type for conversion' };
     }
 
-    // Fetch current price
+    // Fetch current price with retry logic
     console.log('[8] Fetching price from CoinGecko for:', coinGeckoId);
     const apiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${coinGeckoId}&vs_currencies=usd`;
     console.log('[9] CoinGecko API URL:', apiUrl);
     
-    const response = await fetch(apiUrl);
-    const priceData = await response.json();
-    console.log('[10] CoinGecko API response:', JSON.stringify(priceData, null, 2));
+    let priceData;
+    try {
+      const response = await fetchWithRetry(apiUrl);
+      priceData = await response.json();
+      console.log('[10] CoinGecko API response:', JSON.stringify(priceData, null, 2));
+    } catch (fetchError) {
+      console.error('[ERROR] Failed to fetch price data:', fetchError);
+      return { error: 'Failed to fetch cryptocurrency price after multiple attempts' };
+    }
     
-    const usdPrice = priceData[coinGeckoId]?.usd ?? priceData.tether?.usd;
+    const usdPrice = priceData[coinGeckoId]?.usd;
     if (!usdPrice) {
-      console.error('[ERROR] Failed to fetch price data for:', coinGeckoId, 'Response:', priceData);
-      return { error: 'Failed to fetch cryptocurrency price' };
+      console.error('[ERROR] Invalid price data for:', coinGeckoId, 'Response:', priceData);
+      return { error: 'Invalid cryptocurrency price data received' };
     }
 
     console.log('[11] Current price:', usdPrice, 'USD for', cryptoType);
@@ -297,24 +330,43 @@ export async function approveCryptoDeposit(transactionUuid: string) {
           to: userProfile.email,
           subject: `Deposit Confirmation - ${cryptoAmount.toFixed(6)} ${cryptoType}`,
           html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #2a52be;">Deposit Successfully Processed</h2>
-              <p>Dear Valued Client,</p>
-              
-              <p>We're pleased to confirm that your deposit of <strong>${cryptoAmount.toFixed(6)} ${cryptoType}</strong> 
-              (equivalent to $${transaction.amount.toFixed(2)}) has been successfully credited to your TTradeCapital wallet.</p>
-              
-              <p>Your investment will now begin growing according to your selected portfolio strategy. 
-              You can monitor your investment performance directly in your dashboard.</p>
-              
-              <p>Thank you for trusting TTradeCapital with your investment.</p>
-              
-              <p style="margin-top: 30px;">Best regards,<br>
-              The TTradeCapital Team</p>
-              
-              <p style="font-size: 12px; color: #666; margin-top: 30px;">
-                This is an automated message. Please do not reply directly to this email.
-              </p>
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; color: #ffffff; background-image: url('https://res.cloudinary.com/dqhllq2ht/image/upload/v1754181342/photo-1563986768711-b3bde3dc821e_o5hj2v.avif'); background-size: cover; padding: 40px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+              <div style="background-color: rgba(0, 0, 0, 0.7); padding: 30px; border-radius: 8px;">
+                <img src="https://res.cloudinary.com/dqhllq2ht/image/upload/v1754181473/ima_m8am4h.jpg" alt="TTradeCapital Logo" style="max-width: 200px; margin-bottom: 20px;">
+                
+                <h2 style="color: #4a90e2; margin-top: 0; font-weight: 600;">Deposit Successfully Processed</h2>
+                
+                <p style="line-height: 1.6;">Dear Valued Investor,</p>
+                
+                <p style="line-height: 1.6;">We are pleased to inform you that your recent cryptocurrency deposit has been successfully processed and credited to your TTradeCapital investment account. Below are the details of your transaction:</p>
+                
+                <div style="background-color: rgba(74, 144, 226, 0.1); padding: 15px; border-left: 4px solid #4a90e2; margin: 20px 0;">
+                  <p style="margin: 5px 0; font-weight: 500;">Amount Received: <span style="color: #4a90e2;">${cryptoAmount.toFixed(6)} ${cryptoType}</span></p>
+                  <p style="margin: 5px 0; font-weight: 500;">USD Equivalent: <span style="color: #4a90e2;">$${transaction.amount.toFixed(2)}</span></p>
+                  <p style="margin: 5px 0; font-weight: 500;">Transaction ID: <span style="color: #4a90e2;">${transactionUuid}</span></p>
+                  <p style="margin: 5px 0; font-weight: 500;">Processing Date: <span style="color: #4a90e2;">${new Date().toLocaleString()}</span></p>
+                </div>
+                
+                <p style="line-height: 1.6;">Your funds are now actively working for you according to your selected investment strategy. Our advanced algorithms have already begun optimizing your portfolio for maximum returns while maintaining risk parameters appropriate for your investor profile.</p>
+                
+                <p style="line-height: 1.6;">You may now monitor your investment performance through your personalized dashboard, where you'll find real-time analytics, performance metrics, and detailed reports on your portfolio's activity.</p>
+                
+                <p style="line-height: 1.6;">Should you have any questions about your investment or wish to adjust your strategy, our dedicated client support team is available 24/7 to assist you.</p>
+                
+                <p style="line-height: 1.6;">Thank you for choosing TTradeCapital as your trusted investment partner. We appreciate the opportunity to help you achieve your financial goals through innovative cryptocurrency investment solutions.</p>
+                
+                <div style="margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                  <p style="margin: 5px 0;">Best regards,</p>
+                  <p style="margin: 5px 0; font-weight: 600;">The TTradeCapital Investment Team</p>
+                  <p style="margin: 5px 0; font-size: 12px; color: rgba(255,255,255,0.6);">Digital Asset Management Division</p>
+                </div>
+                
+                <p style="font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 30px; line-height: 1.5;">
+                  This message and any attachments are confidential and intended solely for the use of the individual to whom they are addressed. 
+                  If you have received this email in error, please notify us immediately and delete it from your system. 
+                  TTradeCapital does not accept liability for any unauthorized transactions or changes made to your account.
+                </p>
+              </div>
             </div>
           `,
         };
@@ -339,8 +391,8 @@ export async function approveCryptoDeposit(transactionUuid: string) {
     };
 
   } catch (error) {
-    console.error('[ERROR] During conversion:', error);
-    return { error: 'Failed to process cryptocurrency conversion' };
+    console.error('[ERROR] Unexpected error during approval:', error);
+    return { error: 'Unexpected error during transaction approval' };
   }
 }
   
