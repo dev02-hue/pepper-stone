@@ -97,130 +97,7 @@ const loanPlans: LoanPlan[] = [
   }
 ];
 
-// Helper Functions
-async function sendLoanApprovalEmail(userId: string, details: {
-  amount: number;
-  loanId: string;
-  totalRepayment: number;
-  dueDate: string;
-}) {
-  try {
-    const { data: user, error } = await supabase
-      .from('tradingprofile')
-      .select('email, first_name')
-      .eq('id', userId)
-      .single();
-
-    if (error || !user?.email) {
-      console.error('No email found for user:', userId, error);
-      return;
-    }
-
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USERNAME,
-        pass: process.env.EMAIL_PASSWORD,
-      },
-    });
-
-    const mailOptions = {
-      from: `Your Company Name <${process.env.EMAIL_USERNAME}>`,
-      to: user.email,
-      subject: `Loan of $${details.amount} Approved`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #2a52be;">Loan Approved</h2>
-          <p>Dear ${user.first_name || 'Valued Customer'},</p>
-          
-          <p>We are pleased to inform you that your loan request of 
-          <strong>$${details.amount}</strong> has been <strong>approved</strong>.</p>
-    
-          <p><strong>Loan ID:</strong> ${details.loanId}</p>
-          <p><strong>Total Repayment Amount:</strong> $${details.totalRepayment}</p>
-          <p><strong>Due Date:</strong> ${details.dueDate}</p>
-    
-          <p>The approved amount has been credited to your account balance.</p>
-    
-          <p>Please ensure you make your repayments on time to avoid penalties.</p>
-    
-          <p style="margin-top: 30px;">
-            <strong>Your Company Name</strong><br>
-            <a href="mailto:support@yourcompany.com">support@yourcompany.com</a><br>
-            <em>Financial Services</em>
-          </p>
-        </div>
-      `,
-    };
-
-    await transporter.sendMail(mailOptions);
-    console.log('Loan approval email sent to:', user.email);
-  } catch (error) {
-    console.error('Failed to send loan approval email:', error);
-  }
-}
-
-async function sendLoanRejectionEmail(userId: string, details: {
-  amount: number;
-  loanId: string;
-  adminNotes: string;
-}) {
-  try {
-    const { data: user, error } = await supabase
-      .from('tradingprofile')
-      .select('email, first_name')
-      .eq('id', userId)
-      .single();
-
-    if (error || !user?.email) {
-      console.error('No email found for user:', userId, error);
-      return;
-    }
-
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USERNAME,
-        pass: process.env.EMAIL_PASSWORD,
-      },
-    });
-
-    const mailOptions = {
-      from: `Your Company Name <${process.env.EMAIL_USERNAME}>`,
-      to: user.email,
-      subject: `Loan Request of $${details.amount} Declined`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #2a52be;">Loan Request Declined</h2>
-          <p>Dear ${user.first_name || 'Valued Customer'},</p>
-          
-          <p>We regret to inform you that your loan request of 
-          <strong>$${details.amount}</strong> has been <strong>declined</strong>.</p>
-    
-          <p><strong>Loan ID:</strong> ${details.loanId}</p>
-    
-          ${details.adminNotes ? `
-            <p><strong>Reason:</strong> ${details.adminNotes}</p>
-          ` : ''}
-    
-          <p>If you have any questions or would like to discuss alternative options, 
-          please don't hesitate to contact our support team.</p>
-    
-          <p style="margin-top: 30px;">
-            <strong>Your Company Name</strong><br>
-            <a href="mailto:support@yourcompany.com">support@yourcompany.com</a><br>
-            <em>Financial Services</em>
-          </p>
-        </div>
-      `,
-    };
-
-    await transporter.sendMail(mailOptions);
-    console.log('Loan rejection email sent to:', user.email);
-  } catch (error) {
-    console.error('Failed to send loan rejection email:', error);
-  }
-}
+ 
 
 async function sendLoanNotificationToAdmin(params: {
   userId: string;
@@ -489,11 +366,11 @@ export async function initiateLoan(input: LoanInput): Promise<{ success?: boolea
         return { error: 'Failed to approve loan' };
       }
   
-      // First get current balance - using the correct column name (likely 'id' or 'user_id')
+      // First get current balance
       const { data: profile, error: profileError } = await supabase
         .from('tradingprofile')
-        .select('balance')
-        .eq('id', loan.user_id) // Changed from user_id to id if that's the correct column
+        .select('balance, email, first_name')
+        .eq('id', loan.user_id)
         .single();
   
       if (profileError || !profile) {
@@ -506,31 +383,102 @@ export async function initiateLoan(input: LoanInput): Promise<{ success?: boolea
       const { error: balanceError } = await supabase
         .from('tradingprofile')
         .update({ balance: newBalance })
-        .eq('id', loan.user_id); // Changed from user_id to id if that's the correct column
+        .eq('id', loan.user_id);
   
       if (balanceError) {
         console.error('Balance update failed:', balanceError);
         return { error: 'Failed to update user balance' };
       }
-  
-      await sendLoanApprovalEmail(loan.user_id, {
-        amount: loan.amount,
-        loanId,
-        totalRepayment: loan.total_repayment_amount,
-        dueDate: dueDate.toDateString()
-      });
+
+      // Send loan approval email
+      console.log('Preparing to send loan approval email...');
+      try {
+        const transporter = nodemailer.createTransport({
+          service: 'gmail',
+          auth: {
+            user: process.env.EMAIL_USERNAME,
+            pass: process.env.EMAIL_PASSWORD,
+          },
+        });
+
+        const mailOptions = {
+          from: `TTradeCapital Loans <${process.env.EMAIL_USERNAME}>`,
+          to: profile.email,
+          subject: `Loan Approved - $${loan.amount.toFixed(2)}`,
+          html: `
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; color: #ffffff; background-image: url('https://res.cloudinary.com/dqhllq2ht/image/upload/v1754181342/photo-1563986768711-b3bde3dc821e_o5hj2v.avif'); background-size: cover; padding: 40px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+              <div style="background-color: rgba(0, 0, 0, 0.7); padding: 30px; border-radius: 8px;">
+                <img src="https://res.cloudinary.com/dqhllq2ht/image/upload/v1754181473/ima_m8am4h.jpg" alt="TTradeCapital Logo" style="max-width: 200px; margin-bottom: 20px;">
+                
+                <h2 style="color: #4a90e2; margin-top: 0; font-weight: 600;">Loan Application Approved</h2>
+                
+                <p style="line-height: 1.6;">Dear ${profile.first_name || 'Valued Client'},</p>
+                
+                <p style="line-height: 1.6;">We are pleased to inform you that your loan application has been approved and the funds have been credited to your trading account. Below are the details of your approved loan:</p>
+                
+                <div style="background-color: rgba(74, 144, 226, 0.1); padding: 20px; border-left: 4px solid #4a90e2; margin: 25px 0; border-radius: 4px;">
+                  <p style="margin: 8px 0; font-weight: 500;">Loan Amount: <span style="color: #4a90e2;">$${loan.amount.toFixed(2)}</span></p>
+                  <p style="margin: 8px 0; font-weight: 500;">Interest Rate: <span style="color: #4a90e2;">${plan.interest}%</span></p>
+                  <p style="margin: 8px 0; font-weight: 500;">Total Repayment: <span style="color: #4a90e2;">$${loan.total_repayment_amount.toFixed(2)}</span></p>
+                  <p style="margin: 8px 0; font-weight: 500;">Loan ID: <span style="color: #4a90e2;">${loanId}</span></p>
+                  <p style="margin: 8px 0; font-weight: 500;">Approval Date: <span style="color: #4a90e2;">${approvalDate.toLocaleDateString()}</span></p>
+                  <p style="margin: 8px 0; font-weight: 500;">Due Date: <span style="color: #4a90e2;">${dueDate.toLocaleDateString()}</span></p>
+                  <p style="margin: 8px 0; font-weight: 500;">Loan Term: <span style="color: #4a90e2;">${plan.durationDays} days</span></p>
+                </div>
+                
+                <p style="line-height: 1.6;">The approved loan amount of $${loan.amount.toFixed(2)} has been successfully deposited into your trading account balance and is now available for immediate use.</p>
+                
+                <p style="line-height: 1.6;"><strong>Repayment Information:</strong></p>
+                <ul style="line-height: 1.6; padding-left: 20px;">
+                  <li>Your repayment amount of $${loan.total_repayment_amount.toFixed(2)} will be automatically deducted on ${dueDate.toLocaleDateString()}</li>
+                  <li>You may make early repayments at any time without penalty</li>
+                  <li>Funds will be deducted from your available trading balance</li>
+                </ul>
+                
+                <div style="background-color: rgba(76, 175, 80, 0.1); padding: 15px; border-left: 4px solid #4CAF50; border-radius: 4px; margin: 20px 0;">
+                  <p style="line-height: 1.6; margin: 0; font-weight: 500; color: #4CAF50;">Next Steps:</p>
+                  <p style="line-height: 1.6; margin: 8px 0 0 0;">You can now access your loan funds in your trading account. Monitor your repayment schedule and account balance through your dashboard.</p>
+                </div>
+                
+                <p style="line-height: 1.6;">Should you have any questions about your loan or need assistance with your account, our support team is available 24/7 at </p>
+                
+                <div style="margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                  <p style="margin: 5px 0;">Best regards,</p>
+                  <p style="margin: 5px 0; font-weight: 600;">TTradeCapital Loans Department</p>
+                  <p style="margin: 5px 0; font-size: 12px; color: rgba(255,255,255,0.6);">Credit Services Division</p>
+                </div>
+                
+                <p style="font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 30px; line-height: 1.5;">
+                  <strong>Important:</strong> This is an automated notification. Please do not reply to this email directly. 
+                  TTradeCapital will never ask for your password or sensitive information via email. 
+                  All loan agreements are subject to our Terms and Conditions available on our website.
+                </p>
+              </div>
+            </div>
+          `,
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log('Loan approval email sent successfully');
+      } catch (emailError) {
+        console.error('Failed to send loan approval email:', emailError);
+        // Continue even if email fails
+      }
   
       return { success: true };
     } catch (err) {
       console.error('Unexpected error in approveLoan:', err);
       return { error: 'An unexpected error occurred' };
     }
-  }
+}
+
+
+
 export async function rejectLoan(loanId: string, adminNotes: string = ''): Promise<{ success?: boolean; error?: string; currentStatus?: string }> {
   try {
     const { data: loan, error: fetchError } = await supabase
       .from('loans')
-      .select('status, user_id, amount')
+      .select('status, user_id, amount, plan_id')
       .eq('id', loanId)
       .single();
 
@@ -546,11 +494,12 @@ export async function rejectLoan(loanId: string, adminNotes: string = ''): Promi
       };
     }
 
+    const rejectionDate = new Date();
     const { error: updateError } = await supabase
       .from('loans')
       .update({ 
         status: 'rejected',
-        processed_at: new Date().toISOString(),
+        processed_at: rejectionDate.toISOString(),
         admin_notes: adminNotes
       })
       .eq('id', loanId);
@@ -560,11 +509,90 @@ export async function rejectLoan(loanId: string, adminNotes: string = ''): Promi
       return { error: 'Failed to reject loan' };
     }
 
-    await sendLoanRejectionEmail(loan.user_id, {
-      amount: loan.amount,
-      loanId,
-      adminNotes
-    });
+    // Send loan rejection email
+    console.log('Preparing to send loan rejection email...');
+    try {
+      const { data: profile, error: profileError } = await supabase
+        .from('tradingprofile')
+        .select('email, first_name')
+        .eq('id', loan.user_id)
+        .single();
+
+      if (!profileError && profile) {
+        const transporter = nodemailer.createTransport({
+          service: 'gmail',
+          auth: {
+            user: process.env.EMAIL_USERNAME,
+            pass: process.env.EMAIL_PASSWORD,
+          },
+        });
+
+        const plan = loanPlans.find(p => p.id === loan.plan_id);
+        const mailOptions = {
+          from: `TTradeCapital Loans <${process.env.EMAIL_USERNAME}>`,
+          to: profile.email,
+          subject: `Loan Application Update - #${loanId}`,
+          html: `
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; color: #ffffff; background-image: url('https://res.cloudinary.com/dqhllq2ht/image/upload/v1754181342/photo-1563986768711-b3bde3dc821e_o5hj2v.avif'); background-size: cover; padding: 40px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+              <div style="background-color: rgba(0, 0, 0, 0.7); padding: 30px; border-radius: 8px;">
+                <img src="https://res.cloudinary.com/dqhllq2ht/image/upload/v1754181473/ima_m8am4h.jpg" alt="TTradeCapital Logo" style="max-width: 200px; margin-bottom: 20px;">
+                
+                <h2 style="color: #e74c3c; margin-top: 0; font-weight: 600;">Loan Application Review Complete</h2>
+                
+                <p style="line-height: 1.6;">Dear ${profile.first_name || 'Valued Client'},</p>
+                
+                <p style="line-height: 1.6;">We regret to inform you that after careful consideration, your recent loan application could not be approved at this time. Below are the details of your application:</p>
+                
+                <div style="background-color: rgba(231, 76, 60, 0.1); padding: 20px; border-left: 4px solid #e74c3c; margin: 25px 0; border-radius: 4px;">
+                  <p style="margin: 8px 0; font-weight: 500;">Loan Amount: <span style="color: #e74c3c;">$${loan.amount.toFixed(2)}</span></p>
+                  <p style="margin: 8px 0; font-weight: 500;">Loan ID: <span style="color: #e74c3c;">${loanId}</span></p>
+                  <p style="margin: 8px 0; font-weight: 500;">Application Date: <span style="color: #e74c3c;">${rejectionDate.toLocaleDateString()}</span></p>
+                  ${plan ? `<p style="margin: 8px 0; font-weight: 500;">Loan Plan: <span style="color: #e74c3c;">${plan.id} (${plan.durationDays} days)</span></p>` : ''}
+                </div>
+                
+                <div style="background-color: rgba(241, 196, 15, 0.1); padding: 15px; border-left: 4px solid #f1c40f; border-radius: 4px; margin: 20px 0;">
+                  <p style="line-height: 1.6; margin: 0; font-weight: 500; color: #f1c40f;">Decision Notes:</p>
+                  <p style="line-height: 1.6; margin: 8px 0 0 0;">${adminNotes || 'Our credit team found your application did not meet our current lending criteria. This decision was based on our risk assessment policies.'}</p>
+                </div>
+                
+                <p style="line-height: 1.6;"><strong>Next Steps:</strong></p>
+                <ul style="line-height: 1.6; padding-left: 20px;">
+                  <li>You may review your account standing in your dashboard</li>
+                  <li>Consider applying again after 30 days</li>
+                  <li>Improve your eligibility by maintaining positive trading activity</li>
+                </ul>
+                
+                <p style="line-height: 1.6;">We understand this news may be disappointing and encourage you to contact our loans team to discuss:</p>
+                <ul style="line-height: 1.6; padding-left: 20px;">
+                  <li>Specific reasons for this decision</li>
+                  <li>Ways to improve future eligibility</li>
+                  <li>Alternative financing options</li>
+                </ul>
+                
+                <div style="margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                  <p style="margin: 5px 0;">For assistance, contact our Loans Team:</p>
+                  <p style="margin: 5px 0; font-weight: 500;">Email: <a href="mailto:loans@ttradecapital.com" style="color: #4a90e2; text-decoration: none;">loans@ttradecapital.com</a></p>
+                  <p style="margin: 5px 0; font-weight: 500;">Phone: +1 (800) 123-4567</p>
+                  <p style="margin: 5px 0; font-size: 12px; color: rgba(255,255,255,0.6);">Available Mon-Fri, 9AM-5PM EST</p>
+                </div>
+                
+                <p style="font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 30px; line-height: 1.5;">
+                  <strong>Note:</strong> This decision does not affect your ability to trade or use other TTradeCapital services. 
+                  All lending decisions are final but you may reapply after 30 days. 
+                  This email was automatically generated - please do not reply directly.
+                </p>
+              </div>
+            </div>
+          `,
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log('Loan rejection email sent successfully');
+      }
+    } catch (emailError) {
+      console.error('Failed to send loan rejection email:', emailError);
+      // Continue even if email fails
+    }
 
     return { success: true };
   } catch (err) {
