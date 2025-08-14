@@ -4,6 +4,7 @@ import "./globals.css";
 import RootStructure from "./components/layout/RootStructure";
 import DynamicTelegramFloatButtonWrapper from "./components/DynamicTelegramFloatButtonWrapper";
 import ClientRoot from "./components/ClientRoot";
+import TawkScript from "./components/TawkScript";  
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,8 +18,16 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "TTRADE CAPITAL | Global Investment & Trading Platform",
-  description: "Trade stocks, forex, and cryptocurrencies with real-time market data, advanced tools, and secure transactions. Join millions of traders worldwide.",
-  keywords: ["trading", "investing", "stocks", "forex", "cryptocurrency", "market"],
+  description:
+    "Trade stocks, forex, and cryptocurrencies with real-time market data, advanced tools, and secure transactions. Join millions of traders worldwide.",
+  keywords: [
+    "trading",
+    "investing",
+    "stocks",
+    "forex",
+    "cryptocurrency",
+    "market",
+  ],
   authors: [{ name: "Ttradecapital Team", url: "https://www.ttradecapital.com/" }],
   openGraph: {
     title: "Ttradecapital | Global Investment & Trading Platform",
@@ -65,7 +74,7 @@ export const viewport = {
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
@@ -76,6 +85,8 @@ export default function RootLayout({
             <DynamicTelegramFloatButtonWrapper />
           </RootStructure>
         </ClientRoot>
+
+         <TawkScript />
       </body>
     </html>
   );
