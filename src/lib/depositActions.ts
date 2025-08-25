@@ -7,14 +7,14 @@ import { sendDepositEmailToAdmin } from './email'
  
 // Define supported cryptocurrencies with their wallet addresses
 const CRYPTO_WALLETS = {
-  USDC: '0xBD08A48A21bA27CD4F1f48967dfd18F2Ca0E63Cc', // Replace with actual wallet addresses
+  USDC: 'TKXT3i9ZhVSPKaV6djLu21JWZetPeDHXR5', // Replace with actual wallet addresses
   USDT: 'TKXT3i9ZhVSPKaV6djLu21JWZetPeDHXR5',
-  DOT: '0x...',
-  XRP: 'rNCmBcJ15jnxpsb1or1zsLsetXTiPKoGpF',
+  DOT: '16F58pskspFCMFeJYK4iyE8bsVFdZpJ8iBybSof1nQjKADHX',
+  XRP: 'rJkeMxKVfdJXttQCRYLdAm8HCorPYdhiUE',
   ETH: '0x199b0B3f216948a9BDef4aC3B8152497006f6db0',
-  AVAX: 'X-...',
-  ADA: 'addr...',
-  SOL: '0xBD08A48A21bA27CD4F1f48967dfd18F2Ca0E63Cc',
+  AVAX: '0x199b0B3f216948a9BDef4aC3B8152497006f6db0',
+  ADA:'addr1q9ws03phpfg5tan5canfn0fw0n8h4eqm8da26khff5pw88e70vq2k7tt544c5mhp9gesfe25j5ppl7rw0ddqkrk74y2s8suunq',
+  SOL: 'HVLq887tBvATbXoGmCRwmuH1ZajMhNP4qZPG7kXEDeV2',
   BTC: 'bc1qem2t673xk0e5m0dsfcae8uflxk5xs8l7c05jkx',
   BNB: '0x199b0B3f216948a9BDef4aC3B8152497006f6db0'
 }
