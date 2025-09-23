@@ -48,33 +48,50 @@ export default function PricingPlans() {
     {
       title: "Starter",
       percent: "400%",
-      duration: "24 Hour Term",
+      duration: "30 Days Term",
       range: "$300 - $999",
+      description:
+        "With a lower entry point of $500, the potential returns are substantial — up to $18,500 in 30 days.",
       features: ["Capital returned", "24/7 Support", "5% Referral Bonus"],
       colors: "from-blue-500 to-blue-600",
-      accent: "bg-blue-100 text-blue-600"
+      accent: "bg-blue-100 text-blue-600",
     },
     {
       title: "Professional",
       percent: "500%",
-      duration: "24 Hour Term",
+      duration: "32 Days Term",
       range: "$1,000 - $4,999",
-      features: ["Capital returned", "Priority Support", "7% Referral Bonus", "Weekly Insights"],
+      description:
+        "Starting with as little as $1,500, you can potentially earn up to $37,500 in just 45 days.",
+      features: [
+        "Capital returned",
+        "Priority Support",
+        "7% Referral Bonus",
+        "Weekly Insights",
+      ],
       colors: "from-purple-500 to-purple-600",
       accent: "bg-purple-100 text-purple-600",
-      popular: true
+      popular: true,
     },
     {
       title: "Enterprise",
       percent: "550%",
-      duration: "48 Hour Term",
+      duration: "35 Days Term",
       range: "$5,000 - $100,000",
-      features: ["Capital returned", "VIP Support", "10% Referral Bonus", "Dedicated Manager", "Custom Strategies"],
+      description:
+        "With a minimum of $10,000, your returns could reach as high as $550,000 within 60 days.",
+      features: [
+        "Capital returned",
+        "VIP Support",
+        "10% Referral Bonus",
+        "Dedicated Manager",
+        "Custom Strategies",
+      ],
       colors: "from-amber-500 to-amber-600",
-      accent: "bg-amber-100 text-amber-600"
-    }
+      accent: "bg-amber-100 text-amber-600",
+    },
   ];
-
+  
   return (
     <section className={`${inter.className} py-24 px-6 bg-gradient-to-b from-gray-50 to-white`}>
       <div className="max-w-7xl mx-auto">

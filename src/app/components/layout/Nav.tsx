@@ -38,7 +38,7 @@ export const Nav = () => {
     },
     { href: "/about", label: "About Us" },
     { href: "/blog", label: "Market Research" },
-    { href: "/contact", label: "Contact" },
+    // { href: "/contact", label: "Contact" },
   ]
 
   const authLinks = [
