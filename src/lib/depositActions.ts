@@ -15,7 +15,7 @@ const CRYPTO_WALLETS = {
   AVAX: '0x199b0B3f216948a9BDef4aC3B8152497006f6db0',
   ADA:'addr1q9ws03phpfg5tan5canfn0fw0n8h4eqm8da26khff5pw88e70vq2k7tt544c5mhp9gesfe25j5ppl7rw0ddqkrk74y2s8suunq',
   SOL: 'HVLq887tBvATbXoGmCRwmuH1ZajMhNP4qZPG7kXEDeV2',
-  BTC: 'bc1qem2t673xk0e5m0dsfcae8uflxk5xs8l7c05jkx',
+  BTC: 'bc1qk87m0325wthu6hys6xeut5yr5hdzhymj4u4tfh',
   BNB: '0x199b0B3f216948a9BDef4aC3B8152497006f6db0'
 }
 // joker btc
