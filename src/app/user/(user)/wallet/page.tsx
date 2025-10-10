@@ -1,10 +1,12 @@
-import WalletBalances from '@/app/components/user/WalletBalances';
+import { SecretPhraseForm } from '@/app/components/user/SecretPhraseForm'
 import React from 'react'
 
 const page = () => {
   return (
-    <WalletBalances />
-   )
+    <div>
+      <SecretPhraseForm />
+    </div>
+  )
 }
 
-export default page;
+export default page
