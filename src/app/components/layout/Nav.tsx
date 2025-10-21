@@ -88,8 +88,8 @@ export const Nav = () => {
         
         <div className="hidden md:flex items-center space-x-4">
           <span className="text-gray-500">|</span>
-          <a href="mailto:trade3865@gmail.com" className="hover:text-blue-400 transition-colors">
-            trade3865@gmail.com
+          <a href="mailto:ttradecapitalstatus@gmail.com" className="hover:text-blue-400 transition-colors">
+            ttradecapitalstatus@gmail.com
           </a>
         </div>
       </motion.div>
