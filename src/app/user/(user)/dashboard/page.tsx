@@ -15,6 +15,7 @@ import { SiBinance, SiDogecoin, SiLitecoin, SiRipple } from 'react-icons/si'
 import { TbCurrencySolana } from 'react-icons/tb'
 import { getUserBalance } from '@/lib/getUserBalance' 
 import { getUserWalletBalances } from '@/lib/getUserWalletBalances'
+import FloatingModal from '@/app/components/user/FloatingModal'
 
 const COLORS = ['#FD4A36', '#8884d8', '#FFBB28', '#00C49F']
 
@@ -852,6 +853,7 @@ const CryptoDashboard = () => {
           </motion.div>
         </AnimatePresence>
       </div>
+      <FloatingModal />
     </div>
   )
 }

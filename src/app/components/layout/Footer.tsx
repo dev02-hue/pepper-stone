@@ -87,12 +87,12 @@ const Footer = () => {
                 <div className="flex items-center">
                   <FaEnvelope className="text-[#FD4A36] mr-3" />
                   <a href="mailto:trade3865@gmail.com" className="text-gray-300 hover:text-white transition-colors">
-                  trade3865@gmail.com
+                  ttradecapitalstatus@gmail.com
                   </a>
                 </div>
                 <div className="flex items-center">
   <FaPhoneAlt className="text-[#FD4A36] mr-3" />
-  <span className="text-gray-300">+1 (509) 380-4231</span>
+  <span className="text-gray-300">+1 (260) 310-4886</span>
 </div>
                 <div className="flex items-center">
                   <FaClock className="text-[#FD4A36] mr-3" />
