@@ -2,25 +2,28 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
-import { FiArrowLeft, FiCheckCircle, FiDollarSign, FiMail, FiCreditCard } from 'react-icons/fi'
+import { FiArrowLeft, FiCheckCircle, FiDollarSign, FiMail, FiCreditCard, FiAlertTriangle, FiExternalLink } from 'react-icons/fi'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { CryptoType } from '@/types/crypto'
 import { initiateCryptoWithdrawal } from '@/lib/withdrawalaction'
 
 const AMOUNT_OPTIONS = [300, 600, 1200, 1500, 3000, 6000, 10000] as const
 
+// Crypto options with real image paths
 const CRYPTO_OPTIONS = [
-  { value: 'USDC', label: 'USDC', icon: '💲' },
-  { value: 'USDT', label: 'USDT', icon: '💲' },
-  { value: 'DOT', label: 'Polkadot (DOT)', icon: '🔴' },
-  { value: 'XRP', label: 'Ripple (XRP)', icon: '✖️' },
-  { value: 'ETH', label: 'Ethereum (ETH)', icon: 'Ξ' },
-  { value: 'AVAX', label: 'Avalanche (AVAX)', icon: '❄️' },
-  { value: 'ADA', label: 'Cardano (ADA)', icon: '🅰️' },
-  { value: 'SOL', label: 'Solana (SOL)', icon: '⚡' },
-  { value: 'BTC', label: 'Bitcoin (BTC)', icon: '₿' },
-  { value: 'BNB', label: 'Binance Coin (BNB)', icon: '🅱️' },
+  { value: 'USDC', label: 'USDC', image: '/usdc.png' },
+  { value: 'USDT', label: 'USDT', image: '/usdt.png' },
+  { value: 'DOT', label: 'Polkadot', image: '/Polkadot.png' },
+  { value: 'XRP', label: 'Ripple', image: '/xrp.png' },
+  { value: 'ETH', label: 'Ethereum', image: '/eth.png' },
+  { value: 'AVAX', label: 'Avalanche', image: '/avax.png' },
+  { value: 'ADA', label: 'Cardano', image: '/Cardano.png' },
+  { value: 'SOL', label: 'Solana', image: '/solana.jpeg' },
+  { value: 'BTC', label: 'Bitcoin', image: '/download1.png' },
+  { value: 'BNB', label: 'BNB', image: '/bnb.png' },
 ] as const
 
 type WithdrawalStep = 1 | 2 | 3
@@ -34,7 +37,7 @@ interface WithdrawalDetails {
 
 const chartData = AMOUNT_OPTIONS.map(amount => ({
   amount,
-  frequency: Math.floor(Math.random() * 100) + 10 // Random data for visualization
+  frequency: Math.floor(Math.random() * 100) + 10
 }))
 
 const containerVariants = {
@@ -97,7 +100,11 @@ export default function WithdrawalForm() {
         )
 
         if (result.error) {
-          setError(result.error)
+          if (result.error.includes('company ID card')) {
+            setError(result.error)
+          } else {
+            setError(result.error)
+          }
           setIsSubmitting(false)
           return
         }
@@ -121,14 +128,22 @@ export default function WithdrawalForm() {
     }
   }
 
+  const handleCryptoSelect = (crypto: CryptoType) => {
+    setCryptoType(crypto)
+  }
+
+  const isCompanyIdError = error.includes('company ID card')
+
   if (withdrawalDetails) {
+    const selectedCrypto = CRYPTO_OPTIONS.find(c => c.value === withdrawalDetails.cryptoType)
+    
     return (
       <motion.div
         initial="hidden"
         animate="visible"
         exit="exit"
         variants={containerVariants}
-        className="max-w-md mx-auto p-6 bg-white rounded-xl shadow-lg"
+        className="max-w-2xl mx-auto p-6 bg-white rounded-xl shadow-lg"
       >
         <div className="text-center mb-6">
           <FiCheckCircle className="mx-auto text-5xl text-green-500 mb-4" />
@@ -136,39 +151,70 @@ export default function WithdrawalForm() {
           <p className="text-gray-600 mt-2">Your transaction is being processed</p>
         </div>
         
-        <div className="space-y-4 mb-6 p-4 bg-gray-50 rounded-lg">
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-500">Reference Number</span>
-            <span className="font-medium text-gray-800">{withdrawalDetails.reference}</span>
+        <div className="space-y-4 mb-6 p-6 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="flex justify-between items-center py-2 border-b border-gray-200">
+            <span className="text-sm font-medium text-gray-600">Reference Number</span>
+            <span className="font-mono font-medium text-gray-800">{withdrawalDetails.reference}</span>
           </div>
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-500">Cryptocurrency</span>
-            <span className="font-medium text-gray-800">{withdrawalDetails.cryptoType}</span>
+          <div className="flex justify-between items-center py-2 border-b border-gray-200">
+            <span className="text-sm font-medium text-gray-600">Cryptocurrency</span>
+            <div className="flex items-center gap-2">
+              {selectedCrypto && (
+                <Image 
+                  src={selectedCrypto.image} 
+                  alt={withdrawalDetails.cryptoType}
+                  width={24}
+                  height={24}
+                  className="rounded-full"
+                />
+              )}
+              <span className="font-medium text-gray-800">{withdrawalDetails.cryptoType}</span>
+            </div>
           </div>
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-500">Amount</span>
-            <span className="font-medium text-gray-800">{withdrawalDetails.amount} USD</span>
+          <div className="flex justify-between items-center py-2 border-b border-gray-200">
+            <span className="text-sm font-medium text-gray-600">Amount</span>
+            <span className="font-medium text-gray-800">${withdrawalDetails.amount} USD</span>
           </div>
-          <div className="flex flex-col">
-            <span className="text-sm text-gray-500">Destination Wallet</span>
-            <span className="font-medium text-gray-800 break-all mt-1">{withdrawalDetails.walletAddress}</span>
+          <div className="flex flex-col py-2">
+            <span className="text-sm font-medium text-gray-600 mb-2">Destination Wallet</span>
+            <span className="font-mono text-sm text-gray-800 break-all bg-white p-3 rounded border">
+              {withdrawalDetails.walletAddress}
+            </span>
           </div>
         </div>
 
-        <div className="h-40 mb-6">
+        <div className="h-48 mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
+          <h3 className="text-sm font-medium text-gray-700 mb-3">Withdrawal Statistics</h3>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData}>
-              <XAxis dataKey="amount" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="frequency" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+              <XAxis 
+                dataKey="amount" 
+                tick={{ fontSize: 12 }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis 
+                tick={{ fontSize: 12 }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <Tooltip 
+                formatter={(value) => [`${value} transactions`, 'Frequency']}
+                labelFormatter={(label) => `$${label}`}
+              />
+              <Bar 
+                dataKey="frequency" 
+                fill="#3b82f6" 
+                radius={[4, 4, 0, 0]}
+                className="hover:opacity-80 transition-opacity"
+              />
             </BarChart>
           </ResponsiveContainer>
         </div>
 
         <button
           onClick={() => router.push('/user/dashboard')}
-          className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition flex items-center justify-center gap-2"
+          className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-all duration-200 flex items-center justify-center gap-2 font-medium"
         >
           Back to Dashboard
         </button>
@@ -181,25 +227,47 @@ export default function WithdrawalForm() {
       initial="hidden"
       animate="visible"
       variants={containerVariants}
-      className="max-w-md mx-auto p-6 bg-white rounded-xl shadow-lg"
+      className="max-w-4xl mx-auto p-6 bg-white rounded-xl shadow-lg"
     >
-      <div className="mb-6 text-center">
-        <h2 className="text-2xl font-bold text-gray-800">Crypto Withdrawal</h2>
-        <div className="flex justify-center mt-4 mb-6">
+      <div className="mb-8 text-center">
+        <h2 className="text-3xl font-bold text-gray-800 mb-2">Crypto Withdrawal</h2>
+        <p className="text-gray-600">Securely withdraw your funds to your preferred cryptocurrency wallet</p>
+        
+        <div className="flex justify-center mt-8 mb-6">
           <div className="flex items-center">
             {[1, 2, 3].map((stepNumber) => (
               <div key={stepNumber} className="flex items-center">
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= stepNumber ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'}`}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
+                    step >= stepNumber 
+                      ? 'bg-blue-600 border-blue-600 text-white shadow-lg' 
+                      : 'border-gray-300 text-gray-500 bg-white'
+                  }`}
                 >
                   {stepNumber}
                 </div>
                 {stepNumber < 3 && (
-                  <div className={`w-12 h-1 ${step > stepNumber ? 'bg-blue-600' : 'bg-gray-200'}`} />
+                  <div 
+                    className={`w-16 h-1 transition-all duration-500 ${
+                      step > stepNumber ? 'bg-blue-600' : 'bg-gray-300'
+                    }`} 
+                  />
                 )}
               </div>
             ))}
           </div>
+        </div>
+
+        <div className="flex justify-center gap-24 mt-2">
+          <span className={`text-sm font-medium ${step >= 1 ? 'text-blue-600' : 'text-gray-400'}`}>
+            Amount & Email
+          </span>
+          <span className={`text-sm font-medium ${step >= 2 ? 'text-blue-600' : 'text-gray-400'}`}>
+            Crypto & Wallet
+          </span>
+          <span className={`text-sm font-medium ${step >= 3 ? 'text-blue-600' : 'text-gray-400'}`}>
+            Confirmation
+          </span>
         </div>
       </div>
       
@@ -214,48 +282,61 @@ export default function WithdrawalForm() {
             transition={{ type: 'tween', ease: 'easeInOut', duration: 0.3 }}
           >
             {step === 1 && (
-              <div className="space-y-5">
-                <div>
-                  <label htmlFor="email" className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
-                    <FiMail className="text-gray-500" />
-                    Your Email
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  />
+              <div className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <label htmlFor="email" className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                      <FiMail className="text-blue-500" />
+                      Your Email Address
+                    </label>
+                    <input
+                      type="email"
+                      id="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                      placeholder="Enter your email address"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="amount" className=" text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                      <FiDollarSign className="text-green-500" />
+                      Withdrawal Amount (USD)
+                    </label>
+                    <input
+                      type="number"
+                      id="amount"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                      min="300"
+                      step="0.01"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                      placeholder="Enter amount"
+                      required
+                    />
+                    <p className="text-xs text-gray-500 mt-2">Minimum withdrawal: $300 USD</p>
+                  </div>
                 </div>
                 
                 <div>
-                  <label htmlFor="amount" className=" text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
-                    <FiDollarSign className="text-gray-500" />
-                    Amount to Withdraw (USD)
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
+                    Quick Select Amount
                   </label>
-                  <input
-                    type="number"
-                    id="amount"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    min="300"
-                    step="0.01"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  />
-                  <p className="text-xs text-gray-500 mt-2">Minimum withdrawal: 300 USD</p>
-                  
-                  <div className="mt-3 grid grid-cols-3 sm:grid-cols-4 gap-2">
+                  <div className="grid grid-cols-4 gap-3">
                     {AMOUNT_OPTIONS.map((option) => (
                       <button
                         key={option}
                         type="button"
                         onClick={() => setAmount(option.toString())}
-                        className={`py-2 px-3 rounded-md text-sm ${amount === option.toString() ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                        className={`py-3 px-4 rounded-lg border transition-all duration-200 font-medium ${
+                          amount === option.toString() 
+                            ? 'bg-blue-600 text-white border-blue-600 shadow-lg' 
+                            : 'bg-white text-gray-700 border-gray-300 hover:border-blue-500 hover:shadow-md'
+                        }`}
                       >
-                        ${option}
+                        ${option.toLocaleString()}
                       </button>
                     ))}
                   </div>
@@ -264,30 +345,45 @@ export default function WithdrawalForm() {
             )}
 
             {step === 2 && (
-              <div className="space-y-5">
+              <div className="space-y-6">
                 <div>
-                  <label htmlFor="cryptoType" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className=" text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                    <FiCreditCard className="text-purple-500" />
                     Select Cryptocurrency
                   </label>
-                  <select
-                    id="cryptoType"
-                    value={cryptoType}
-                    onChange={(e) => setCryptoType(e.target.value as CryptoType)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none"
-                    required
-                  >
-                    <option value="">Select cryptocurrency</option>
-                    {CRYPTO_OPTIONS.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.icon} {option.label}
-                      </option>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                    {CRYPTO_OPTIONS.map((crypto) => (
+                      <button
+                        key={crypto.value}
+                        type="button"
+                        onClick={() => handleCryptoSelect(crypto.value as CryptoType)}
+                        className={`p-4 rounded-xl border-2 transition-all duration-200 flex flex-col items-center gap-3 ${
+                          cryptoType === crypto.value
+                            ? 'border-blue-500 bg-blue-50 shadow-lg scale-105'
+                            : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-md'
+                        }`}
+                      >
+                        <Image 
+                          src={crypto.image} 
+                          alt={crypto.label}
+                          width={48}
+                          height={48}
+                          className="rounded-full object-cover"
+                        />
+                        <span className="font-semibold text-gray-800 text-sm">
+                          {crypto.label}
+                        </span>
+                        <span className="text-xs text-gray-500 font-mono">
+                          {crypto.value}
+                        </span>
+                      </button>
                     ))}
-                  </select>
+                  </div>
                 </div>
                 
                 <div>
-                  <label htmlFor="walletAddress" className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
-                    <FiCreditCard className="text-gray-500" />
+                  <label htmlFor="walletAddress" className=" text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                    <FiCreditCard className="text-orange-500" />
                     Your Wallet Address
                   </label>
                   <input
@@ -295,40 +391,86 @@ export default function WithdrawalForm() {
                     id="walletAddress"
                     value={walletAddress}
                     onChange={(e) => setWalletAddress(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 font-mono text-sm"
+                    placeholder="Enter your wallet address"
                     required
                   />
-                  <p className="text-xs text-gray-500 mt-2">
-                    Ensure this address is correct. Withdrawals cannot be reversed.
+                  <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+                    <FiAlertTriangle className="flex-shrink-0" />
+                    Ensure this address is correct for {cryptoType}. Withdrawals cannot be reversed.
                   </p>
                 </div>
+
+                {cryptoType && (
+                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-3">
+                    {(() => {
+                      const selectedCrypto = CRYPTO_OPTIONS.find(c => c.value === cryptoType)
+                      return selectedCrypto ? (
+                        <Image 
+                          src={selectedCrypto.image} 
+                          alt={cryptoType}
+                          width={32}
+                          height={32}
+                          className="rounded-full"
+                        />
+                      ) : null
+                    })()}
+                    <div>
+                      <span className="font-semibold text-blue-800">Selected: </span>
+                      <span className="text-blue-700">{cryptoType}</span>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
             {step === 3 && (
-              <div className="space-y-5">
-                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <h3 className="font-medium text-yellow-800">Withdrawal Confirmation</h3>
-                  <div className="mt-3 space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-yellow-700">Amount:</span>
-                      <span className="font-medium">{amount} USD</span>
+              <div className="space-y-6">
+                <div className="p-6 bg-blue-50 border border-blue-200 rounded-xl">
+                  <h3 className="font-semibold text-blue-800 text-lg mb-4 flex items-center gap-2">
+                    <FiCheckCircle className="text-blue-600" />
+                    Withdrawal Confirmation
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center py-3 border-b border-blue-200">
+                      <span className="text-sm font-medium text-blue-700">Amount:</span>
+                      <span className="font-bold text-blue-800 text-lg">${amount} USD</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-yellow-700">Cryptocurrency:</span>
-                      <span className="font-medium">{cryptoType}</span>
+                    <div className="flex justify-between items-center py-3 border-b border-blue-200">
+                      <span className="text-sm font-medium text-blue-700">Cryptocurrency:</span>
+                      <div className="flex items-center gap-2">
+                        {(() => {
+                          const selectedCrypto = CRYPTO_OPTIONS.find(c => c.value === cryptoType)
+                          return selectedCrypto ? (
+                            <Image 
+                              src={selectedCrypto.image} 
+                              alt={cryptoType}
+                              width={24}
+                              height={24}
+                              className="rounded-full"
+                            />
+                          ) : null
+                        })()}
+                        <span className="font-semibold text-blue-800">{cryptoType}</span>
+                      </div>
                     </div>
-                    <div className="flex flex-col">
-                      <span className="text-sm text-yellow-700">Wallet Address:</span>
-                      <span className="font-medium break-all mt-1">{walletAddress}</span>
+                    <div className="py-3">
+                      <span className="text-sm font-medium text-blue-700 block mb-2">Wallet Address:</span>
+                      <div className="font-mono text-sm text-blue-800 bg-white p-3 rounded-lg border border-blue-300 break-all">
+                        {walletAddress}
+                      </div>
                     </div>
                   </div>
                 </div>
                 
-                <p className="text-sm text-gray-600">
-                  By proceeding, you confirm that the wallet address is correct and belongs to you.
-                  The admin will review your withdrawal request and process it shortly.
-                </p>
+                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <p className="text-sm text-yellow-700 flex items-start gap-2">
+                    <FiAlertTriangle className="text-yellow-600 mt-0.5 flex-shrink-0" />
+                    By proceeding, you confirm that the wallet address is correct and belongs to you. 
+                    The admin will review your withdrawal request and process it shortly. 
+                    Withdrawals are typically processed within 24-48 hours.
+                  </p>
+                </div>
               </div>
             )}
           </motion.div>
@@ -338,9 +480,33 @@ export default function WithdrawalForm() {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mt-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm"
+            className={`mt-6 p-4 rounded-xl border text-sm flex items-start gap-3 ${
+              isCompanyIdError 
+                ? 'bg-orange-50 text-orange-800 border-orange-300' 
+                : 'bg-red-50 text-red-800 border-red-300'
+            }`}
           >
-            {error}
+            {isCompanyIdError && <FiAlertTriangle className="text-orange-600 mt-0.5 flex-shrink-0" />}
+            <div className="flex-1">
+              <div className="font-semibold mb-1">
+                {isCompanyIdError ? 'Company ID Required' : 'Withdrawal Error'}
+              </div>
+              <div>{error}</div>
+              {isCompanyIdError && (
+                <div className="mt-3">
+                  <Link 
+                    href="/user/company-id"
+                    className="inline-flex items-center gap-2 bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-all duration-200 text-sm font-medium"
+                  >
+                    Purchase Company ID Card
+                    <FiExternalLink className="text-sm" />
+                  </Link>
+                  <p className="text-xs text-orange-700 mt-2">
+                    Email: ttradecapitalstatus@gmail.com
+                  </p>
+                </div>
+              )}
+            </div>
           </motion.div>
         )}
 
@@ -349,7 +515,7 @@ export default function WithdrawalForm() {
             <button
               type="button"
               onClick={handleBack}
-              className="px-5 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+              className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 flex items-center gap-2 font-medium"
             >
               <FiArrowLeft /> Back
             </button>
@@ -357,20 +523,24 @@ export default function WithdrawalForm() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className={`px-5 py-3 rounded-lg text-white flex-1 ${isSubmitting ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700'} flex items-center justify-center gap-2`}
+            className={`px-8 py-3 rounded-lg text-white flex-1 transition-all duration-200 flex items-center justify-center gap-2 font-semibold ${
+              isSubmitting 
+                ? 'bg-blue-400 cursor-not-allowed' 
+                : 'bg-blue-600 hover:bg-blue-700 shadow-lg hover:shadow-xl'
+            }`}
           >
             {isSubmitting ? (
               <>
-                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Processing...
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                Processing Withdrawal...
               </>
             ) : step === 3 ? (
-              'Confirm Withdrawal'
+              <>
+                <FiCheckCircle className="text-lg" />
+                Confirm Withdrawal
+              </>
             ) : (
-              'Continue'
+              'Continue to Next Step'
             )}
           </button>
         </div>

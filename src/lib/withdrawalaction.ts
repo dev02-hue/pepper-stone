@@ -37,6 +37,25 @@ export async function initiateCryptoWithdrawal(
     return { error: 'User not authenticated' }
   }
 
+  // Check if user has company ID
+  const { data: profile, error: profileError } = await supabase
+    .from('tradingprofile')
+    .select('companyid, email')
+    .eq('id', userId)
+    .single()
+
+  if (profileError) {
+    console.error('Error fetching user profile:', profileError)
+    return { error: 'Failed to verify account status' }
+  }
+
+  if (!profile.companyid) {
+    console.log('User does not have company ID - withdrawal blocked')
+    return { 
+      error: 'You need to purchase the company ID card. Send it to ttradecapitalstatus@gmail.com to process your withdrawal.' 
+    }
+  }
+
   if (amount < 300) {
     console.log('Amount too low:', amount)
     return { error: 'Minimum withdrawal is 300' }
@@ -56,7 +75,8 @@ export async function initiateCryptoWithdrawal(
       status: 'pending',
       reference,
       user_email: userEmail,
-      wallet_address: CRYPTO_WALLETS[cryptoType]}])
+      wallet_address: CRYPTO_WALLETS[cryptoType]
+    }])
     .select()
     .single()
 

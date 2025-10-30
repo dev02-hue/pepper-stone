@@ -40,6 +40,8 @@ const CryptoDashboard = () => {
     USDT: 1.00
   })
 
+
+
   // Memoized price history data to prevent unnecessary recalculations
   const priceHistoryData = useMemo(() => [
     { name: 'Jan', btc: 4000, eth: 2400, sol: 2400 },
@@ -142,7 +144,7 @@ const CryptoDashboard = () => {
     return () => clearInterval(priceInterval)
   }, [fetchBalance, simulatePriceChanges])
 
-  // Memoized calculations for totals
+  
   const { totalBalance, totalProfit } = useMemo(() => {
     const balance = portfolioData.reduce((sum, item) => sum + item.value, 0)
     const profit = portfolioData.reduce((sum, item) => sum + (item.value * (item.change / 100)), 0)
