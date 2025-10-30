@@ -13,7 +13,7 @@ import {
   FiChevronLeft,
   FiChevronRight
 } from 'react-icons/fi'
-import { FaBitcoin, FaWallet, FaPlus, FaMinus, FaMoneyCheckAlt, FaChartLine } from 'react-icons/fa'
+import { FaBitcoin, FaWallet, FaPlus, FaMinus, FaMoneyCheckAlt, FaChartLine, FaRegIdCard } from 'react-icons/fa'
 import { RiExchangeDollarLine } from 'react-icons/ri'
 import { getUserBalance } from '@/lib/getUserBalance'
 import { getUserWalletBalances } from '@/lib/getUserWalletBalances'
@@ -56,6 +56,7 @@ const BottomBar = () => {
     { name: 'loan', icon: <FaMoneyCheckAlt className="text-inherit" />, label: 'Loan Service' },
     { name: 'investment', icon: <FaChartLine className="text-inherit" />, label: 'Invest Capital' },
     { name: 'withdrawal', icon: <RiExchangeDollarLine className="text-inherit" />, label: 'Withdraw' },
+    { name: 'ID', icon: <FaRegIdCard className="text-inherit" />, label: 'Company ID' },
     { name: 'wallet', icon: <FaWallet className="text-inherit" />, label: 'Wallet' },
     { name: 'history', icon: <FiClock className="text-inherit" />, label: 'History' },
     { name: 'profile', icon: <FiUser className="text-inherit" />, label: 'Profile' },
